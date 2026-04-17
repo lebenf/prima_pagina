@@ -1,0 +1,9 @@
+services:
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+      - prima_pagina_data:/app/data
+    environment:
+      APP_ENV: development
+      LOG_LEVEL: DEBUG

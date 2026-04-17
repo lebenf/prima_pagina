@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Sample News Feed</title>
+    <link>https://example.com</link>
+    <description>A sample news feed for testing</description>
+    <language>en</language>
+
+    <item>
+      <title>First Article</title>
+      <link>https://example.com/articles/1</link>
+      <guid isPermaLink="false">https://example.com/articles/1</guid>
+      <author>Alice Smith</author>
+      <description>&lt;p&gt;This is the &lt;strong&gt;first&lt;/strong&gt; article excerpt.&lt;/p&gt;&lt;script&gt;alert('xss')&lt;/script&gt;</description>
+      <pubDate>Wed, 15 Apr 2026 08:00:00 +0000</pubDate>
+    </item>
+
+    <item>
+      <title>Second Article</title>
+      <link>https://example.com/articles/2</link>
+      <guid isPermaLink="false">https://example.com/articles/2</guid>
+      <author>Bob Jones</author>
+      <description>&lt;p&gt;This is the second article excerpt with some &lt;em&gt;emphasis&lt;/em&gt;.&lt;/p&gt;</description>
+      <pubDate>Wed, 15 Apr 2026 09:00:00 +0000</pubDate>
+    </item>
+
+    <item>
+      <title>Third Article</title>
+      <link>https://example.com/articles/3</link>
+      <guid isPermaLink="false">https://example.com/articles/3</guid>
+      <author>Carol White</author>
+      <description>&lt;p&gt;This is the third article excerpt.&lt;/p&gt;</description>
+      <pubDate>Wed, 15 Apr 2026 10:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

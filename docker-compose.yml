@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - prima_pagina_data:/app/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  prima_pagina_data:

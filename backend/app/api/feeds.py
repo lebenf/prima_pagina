@@ -1,0 +1,117 @@
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, require_admin
+from app.database import get_db
+from app.models.user import User
+from app.schemas.common import Page
+from app.schemas.feed import FeedCreate, FeedResponse, FeedUpdate, SubscriptionUpdate
+from app.services import feed_service
+
+router = APIRouter(tags=["feeds"])
+
+
+@router.get("/feeds/subscribed", response_model=list[FeedResponse])
+async def get_subscribed_feeds(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await feed_service.get_user_feeds(db, current_user.id)
+
+
+@router.get("/feeds", response_model=Page[FeedResponse])
+async def list_feeds(
+    category_id: uuid.UUID | None = Query(default=None),
+    subscribed: bool = Query(default=False),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await feed_service.get_feeds(
+        db,
+        user_id=current_user.id,
+        category_id=category_id,
+        subscribed_only=subscribed,
+        page=page,
+        size=size,
+    )
+
+
+@router.post("/feeds", response_model=FeedResponse, status_code=status.HTTP_201_CREATED)
+async def create_feed(
+    body: FeedCreate,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    return await feed_service.create_feed(db, body)
+
+
+@router.get("/feeds/{feed_id}", response_model=FeedResponse)
+async def get_feed(
+    feed_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    feed = await feed_service.get_feed_by_id(db, feed_id, current_user.id)
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Feed not found")
+    return feed
+
+
+@router.put("/feeds/{feed_id}", response_model=FeedResponse)
+async def update_feed(
+    feed_id: uuid.UUID,
+    body: FeedUpdate,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    feed = await feed_service.update_feed(db, feed_id, body)
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Feed not found")
+    return feed
+
+
+@router.delete("/feeds/{feed_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_feed(
+    feed_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    ok = await feed_service.delete_feed(db, feed_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Feed not found")
+
+
+@router.post("/feeds/{feed_id}/subscribe", status_code=status.HTTP_201_CREATED)
+async def subscribe_feed(
+    feed_id: uuid.UUID,
+    body: SubscriptionUpdate = SubscriptionUpdate(),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    await feed_service.subscribe(db, current_user.id, feed_id, body)
+    return {"detail": "Subscribed"}
+
+
+@router.delete("/feeds/{feed_id}/subscribe", status_code=status.HTTP_204_NO_CONTENT)
+async def unsubscribe_feed(
+    feed_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ok = await feed_service.unsubscribe(db, current_user.id, feed_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Not subscribed to this feed")
+
+
+@router.post("/feeds/{feed_id}/refresh", status_code=status.HTTP_202_ACCEPTED)
+async def refresh_feed(
+    feed_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    # Full implementation in T04
+    raise HTTPException(status_code=501, detail="Manual refresh not implemented yet")
