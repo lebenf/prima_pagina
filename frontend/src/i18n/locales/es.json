@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "frontpage": "Portada",
+    "reader": "Lector",
+    "settings": "Ajustes",
+    "admin": "Administración",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "username": "Usuario o correo electrónico",
+    "password": "Contraseña",
+    "loginError": "Credenciales no válidas",
+    "loggingIn": "Iniciando sesión..."
+  },
+  "article": {
+    "readMore": "Leer más",
+    "markRead": "Marcar como leído",
+    "markUnread": "Marcar como no leído",
+    "star": "Añadir a favoritos",
+    "unstar": "Eliminar de favoritos",
+    "loadingFulltext": "Cargando artículo completo...",
+    "fulltextFailed": "No se pudo cargar el artículo completo",
+    "publishedAt": "Publicado el {date}",
+    "by": "por {author}"
+  },
+  "feed": {
+    "subscribe": "Suscribirse",
+    "unsubscribe": "Cancelar suscripción",
+    "subscribers": "{count} suscriptores",
+    "noFeeds": "No hay fuentes disponibles",
+    "lastFetched": "Actualizado hace {time}"
+  },
+  "frontpage": {
+    "latestDigest": "Resumen de prensa",
+    "noDigest": "No hay resumen de prensa disponible",
+    "topStory": "Noticia principal",
+    "generateDigest": "Generar resumen",
+    "generating": "Generando...",
+    "generatingDetail": "Analizando artículos, por favor espere (30–90 segundos)...",
+    "lastUpdated": "Actualizado hace {time}",
+    "noArticles": "No hay artículos disponibles. Suscríbete a algunos feeds para empezar.",
+    "goToReader": "Ir al Lector →",
+    "readDigest": "Leer resumen",
+    "digestArticles": "{count} artículos",
+    "digestGenerated": "Generado con {provider}"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se ha producido un error",
+    "retry": "Reintentar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "search": "Buscar...",
+    "noResults": "Sin resultados"
+  },
+  "reader": {
+    "allFeeds": "Todos los feeds",
+    "unread": "No leídos",
+    "starred": "Favoritos",
+    "all": "Todos",
+    "noArticles": "No hay artículos que mostrar",
+    "back": "Atrás",
+    "openOriginal": "Abrir original",
+    "loadMore": "Cargar más",
+    "markAllRead": "Marcar todo como leído",
+    "selectArticle": "Selecciona un artículo para leer"
+  },
+  "admin": {
+    "title": "Panel de administración",
+    "tabs": {
+      "users": "Usuarios",
+      "sessions": "Sesiones",
+      "feeds": "Fuentes",
+      "categories": "Categorías",
+      "llm": "LLM",
+      "plugins": "Plugins"
+    },
+    "users": {
+      "title": "Gestión de usuarios",
+      "newUser": "Nuevo usuario",
+      "editUser": "Editar usuario",
+      "deleteConfirm": "¿Eliminar el usuario {username}? Esta acción no se puede deshacer.",
+      "role": "Rol",
+      "active": "Activo",
+      "cannotDeleteSelf": "No puedes eliminar tu propia cuenta"
+    },
+    "sessions": {
+      "title": "Sesiones activas",
+      "currentSession": "Esta sesión",
+      "revokeAll": "Revocar todas",
+      "revokeConfirm": "¿Revocar la sesión de {username}?",
+      "refresh": "Actualizar",
+      "lastActive": "Último acceso",
+      "expiresAt": "Expira el",
+      "noSessions": "No hay sesiones activas"
+    },
+    "feeds": {
+      "title": "Catálogo de fuentes",
+      "addFeed": "Añadir fuente",
+      "editFeed": "Editar fuente",
+      "refreshFeed": "Actualizar ahora",
+      "errorCount": "{count} errores",
+      "discovering": "Detectando información de la fuente...",
+      "interval": "Intervalo (min)",
+      "weight": "Peso de fuente",
+      "deleteConfirm": "¿Eliminar la fuente {title}?",
+      "neverFetched": "Nunca"
+    },
+    "categories": {
+      "title": "Categorías",
+      "addCategory": "Nueva categoría",
+      "editCategory": "Editar categoría",
+      "slug": "Slug",
+      "names": "Nombres",
+      "deleteConfirm": "¿Eliminar la categoría {slug}?",
+      "feedCount": "{count} fuentes"
+    },
+    "llm": {
+      "title": "Proveedores LLM",
+      "addProvider": "Añadir proveedor",
+      "editProvider": "Editar proveedor",
+      "healthCheck": "Comprobación de salud",
+      "checking": "Comprobando...",
+      "defaultFor": "Predeterminado para {useCase}",
+      "deleteConfirm": "¿Eliminar el proveedor {label}?",
+      "hasApiKey": "Tiene clave API",
+      "noApiKey": "Sin clave API",
+      "priority": "Prioridad",
+      "useFor": "Usar para",
+      "isDefault": "Predeterminado",
+      "endpoint": "URL del endpoint",
+      "apiKey": "Clave API",
+      "model": "Modelo"
+    },
+    "plugins": {
+      "title": "Plugins de notificación",
+      "addPlugin": "Añadir plugin",
+      "editPlugin": "Editar plugin",
+      "testConnection": "Probar conexión",
+      "testing": "Probando...",
+      "testOk": "Conexión OK",
+      "testFailed": "Conexión fallida",
+      "deleteConfirm": "¿Eliminar el plugin {label}?",
+      "globalScope": "Global (todos los usuarios)",
+      "userScope": "Usuario específico"
+    }
+  },
+  "digest": {
+    "title": "Resumen de prensa",
+    "generate": "Generar resumen",
+    "generating": "Generando...",
+    "noDigest": "No hay resumen disponible",
+    "period": "Período: {start} — {end}",
+    "articles": "{count} artículos analizados",
+    "provider": "Generado con {provider}",
+    "deleteConfirm": "¿Eliminar este resumen de prensa?"
+  },
+  "virtualFeed": {
+    "title": "Fuentes virtuales",
+    "create": "Nueva fuente virtual",
+    "filterType": {
+      "category": "Por categoría",
+      "tags": "Por etiquetas",
+      "mixed": "Mixto"
+    },
+    "rssUrl": "URL RSS",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "¡URL copiada!",
+    "regenerateToken": "Regenerar token",
+    "regenerateConfirm": "Regenerar el token invalidará la URL RSS antigua. ¿Continuar?",
+    "includeDigest": "Incluir resumen como primer artículo",
+    "articleCount": "{count} artículos coincidentes",
+    "preview": "Vista previa"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma de la interfaz",
+    "password": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "sessions": "Sesiones activas",
+    "sessionInfo": "Acceso desde {ip} el {date}",
+    "currentSession": "Sesión actual",
+    "revokeSession": "Revocar",
+    "revokeConfirm": "¿Revocar esta sesión?"
+  },
+  "errors": {
+    "network": "Error de red. Comprueba tu conexión.",
+    "unauthorized": "Sesión expirada. Inicia sesión de nuevo.",
+    "forbidden": "No tienes permisos para esta acción.",
+    "notFound": "Recurso no encontrado.",
+    "serverError": "Error del servidor. Inténtalo de nuevo más tarde.",
+    "timeout": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+    "offline": "Estás sin conexión. Algunas funciones no están disponibles."
+  },
+  "pwa": {
+    "updateAvailable": "Hay una actualización disponible",
+    "updateNow": "Actualizar ahora",
+    "updateLater": "Más tarde",
+    "offlineMode": "Modo sin conexión — contenido posiblemente desactualizado",
+    "offlineArticles": "Artículos disponibles sin conexión: {count}"
+  },
+  "languages": {
+    "it": "Italiano",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

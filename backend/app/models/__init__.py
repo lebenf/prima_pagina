@@ -5,8 +5,13 @@ from app.models.feed import Feed
 from app.models.user_feed import UserFeed
 from app.models.article import Article, FulltextStatus, TagsSource
 from app.models.article_user_state import ArticleUserState
+from app.models.llm_config import LLMConfig
+from app.models.virtual_feed import VirtualFeed, FilterType
+from app.models.digest import Digest
+from app.models.plugin_config import PluginConfig
 
 __all__ = [
     "User", "Session", "Category", "Feed", "UserFeed",
     "Article", "FulltextStatus", "TagsSource", "ArticleUserState",
+    "LLMConfig", "VirtualFeed", "FilterType", "Digest", "PluginConfig",
 ]

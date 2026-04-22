@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "frontpage": "Une",
+    "reader": "Lecteur",
+    "settings": "Paramètres",
+    "admin": "Administration",
+    "logout": "Se déconnecter"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "username": "Nom d'utilisateur ou e-mail",
+    "password": "Mot de passe",
+    "loginError": "Identifiants invalides",
+    "loggingIn": "Connexion en cours..."
+  },
+  "article": {
+    "readMore": "Lire la suite",
+    "markRead": "Marquer comme lu",
+    "markUnread": "Marquer comme non lu",
+    "star": "Ajouter aux favoris",
+    "unstar": "Retirer des favoris",
+    "loadingFulltext": "Chargement de l'article complet...",
+    "fulltextFailed": "Impossible de charger l'article complet",
+    "publishedAt": "Publié le {date}",
+    "by": "par {author}"
+  },
+  "feed": {
+    "subscribe": "S'abonner",
+    "unsubscribe": "Se désabonner",
+    "subscribers": "{count} abonnés",
+    "noFeeds": "Aucun flux disponible",
+    "lastFetched": "Mis à jour il y a {time}"
+  },
+  "frontpage": {
+    "latestDigest": "Revue de presse",
+    "noDigest": "Aucune revue de presse disponible",
+    "topStory": "À la une",
+    "generateDigest": "Générer la revue",
+    "generating": "Génération en cours...",
+    "generatingDetail": "Analyse des articles en cours, veuillez patienter (30–90 secondes)...",
+    "lastUpdated": "Mis à jour il y a {time}",
+    "noArticles": "Aucun article disponible. Abonnez-vous à des flux pour commencer.",
+    "goToReader": "Aller au Lecteur →",
+    "readDigest": "Lire la revue",
+    "digestArticles": "{count} articles",
+    "digestGenerated": "Généré avec {provider}"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "search": "Rechercher...",
+    "noResults": "Aucun résultat"
+  },
+  "reader": {
+    "allFeeds": "Tous les flux",
+    "unread": "Non lus",
+    "starred": "Favoris",
+    "all": "Tous",
+    "noArticles": "Aucun article à afficher",
+    "back": "Retour",
+    "openOriginal": "Ouvrir l'original",
+    "loadMore": "Charger plus",
+    "markAllRead": "Tout marquer comme lu",
+    "selectArticle": "Sélectionnez un article à lire"
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "tabs": {
+      "users": "Utilisateurs",
+      "sessions": "Sessions",
+      "feeds": "Flux",
+      "categories": "Catégories",
+      "llm": "LLM",
+      "plugins": "Plugins"
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "newUser": "Nouvel utilisateur",
+      "editUser": "Modifier l'utilisateur",
+      "deleteConfirm": "Supprimer l'utilisateur {username} ? Cette action est irréversible.",
+      "role": "Rôle",
+      "active": "Actif",
+      "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
+    },
+    "sessions": {
+      "title": "Sessions actives",
+      "currentSession": "Cette session",
+      "revokeAll": "Révoquer tout",
+      "revokeConfirm": "Révoquer la session de {username} ?",
+      "refresh": "Actualiser",
+      "lastActive": "Dernière activité",
+      "expiresAt": "Expire le",
+      "noSessions": "Aucune session active"
+    },
+    "feeds": {
+      "title": "Catalogue de flux",
+      "addFeed": "Ajouter un flux",
+      "editFeed": "Modifier le flux",
+      "refreshFeed": "Actualiser maintenant",
+      "errorCount": "{count} erreurs",
+      "discovering": "Détection des infos du flux...",
+      "interval": "Intervalle (min)",
+      "weight": "Poids source",
+      "deleteConfirm": "Supprimer le flux {title} ?",
+      "neverFetched": "Jamais"
+    },
+    "categories": {
+      "title": "Catégories",
+      "addCategory": "Nouvelle catégorie",
+      "editCategory": "Modifier la catégorie",
+      "slug": "Slug",
+      "names": "Noms",
+      "deleteConfirm": "Supprimer la catégorie {slug} ?",
+      "feedCount": "{count} flux"
+    },
+    "llm": {
+      "title": "Fournisseurs LLM",
+      "addProvider": "Ajouter un fournisseur",
+      "editProvider": "Modifier le fournisseur",
+      "healthCheck": "Vérification de santé",
+      "checking": "Vérification...",
+      "defaultFor": "Défaut pour {useCase}",
+      "deleteConfirm": "Supprimer le fournisseur {label} ?",
+      "hasApiKey": "A une clé API",
+      "noApiKey": "Pas de clé API",
+      "priority": "Priorité",
+      "useFor": "Utiliser pour",
+      "isDefault": "Défaut",
+      "endpoint": "URL endpoint",
+      "apiKey": "Clé API",
+      "model": "Modèle"
+    },
+    "plugins": {
+      "title": "Plugins de notification",
+      "addPlugin": "Ajouter un plugin",
+      "editPlugin": "Modifier le plugin",
+      "testConnection": "Tester la connexion",
+      "testing": "Test en cours...",
+      "testOk": "Connexion OK",
+      "testFailed": "Connexion échouée",
+      "deleteConfirm": "Supprimer le plugin {label} ?",
+      "globalScope": "Global (tous les utilisateurs)",
+      "userScope": "Utilisateur spécifique"
+    }
+  },
+  "digest": {
+    "title": "Revue de presse",
+    "generate": "Générer la revue",
+    "generating": "Génération en cours...",
+    "noDigest": "Aucune revue disponible",
+    "period": "Période : {start} — {end}",
+    "articles": "{count} articles analysés",
+    "provider": "Généré avec {provider}",
+    "deleteConfirm": "Supprimer cette revue de presse ?"
+  },
+  "virtualFeed": {
+    "title": "Flux virtuels",
+    "create": "Nouveau flux virtuel",
+    "filterType": {
+      "category": "Par catégorie",
+      "tags": "Par tags",
+      "mixed": "Mixte"
+    },
+    "rssUrl": "URL RSS",
+    "copyUrl": "Copier l'URL",
+    "urlCopied": "URL copiée !",
+    "regenerateToken": "Regénérer le token",
+    "regenerateConfirm": "Regénérer le token invalidera l'ancienne URL RSS. Continuer ?",
+    "includeDigest": "Inclure la revue comme premier article",
+    "articleCount": "{count} articles correspondants",
+    "preview": "Aperçu"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue de l'interface",
+    "password": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "sessions": "Sessions actives",
+    "sessionInfo": "Accès depuis {ip} le {date}",
+    "currentSession": "Session actuelle",
+    "revokeSession": "Révoquer",
+    "revokeConfirm": "Révoquer cette session ?"
+  },
+  "errors": {
+    "network": "Erreur réseau. Vérifiez votre connexion.",
+    "unauthorized": "Session expirée. Veuillez vous reconnecter.",
+    "forbidden": "Vous n'avez pas les permissions pour cette action.",
+    "notFound": "Ressource introuvable.",
+    "serverError": "Erreur serveur. Réessayez plus tard.",
+    "timeout": "La requête a pris trop de temps. Réessayez.",
+    "offline": "Vous êtes hors ligne. Certaines fonctionnalités sont indisponibles."
+  },
+  "pwa": {
+    "updateAvailable": "Une mise à jour est disponible",
+    "updateNow": "Mettre à jour",
+    "updateLater": "Plus tard",
+    "offlineMode": "Mode hors ligne — contenu non actualisé",
+    "offlineArticles": "Articles disponibles hors ligne : {count}"
+  },
+  "languages": {
+    "it": "Italiano",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

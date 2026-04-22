@@ -22,6 +22,8 @@ dependencies = [
     "feedparser>=6.0",
     "langdetect>=1.0",
     "trafilatura>=2.0.0",
+    "anthropic>=0.28",
+    "babel>=2.15",
 ]
 
 [dependency-groups]

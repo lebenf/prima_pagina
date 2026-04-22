@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "frontpage": "Front Page",
+    "reader": "Reader",
+    "settings": "Settings",
+    "admin": "Administration",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "username": "Username or email",
+    "password": "Password",
+    "loginError": "Invalid credentials",
+    "loggingIn": "Logging in..."
+  },
+  "article": {
+    "readMore": "Read more",
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "star": "Add to favourites",
+    "unstar": "Remove from favourites",
+    "loadingFulltext": "Loading full article...",
+    "fulltextFailed": "Could not load full article",
+    "publishedAt": "Published on {date}",
+    "by": "by {author}"
+  },
+  "feed": {
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "subscribers": "{count} subscribers",
+    "noFeeds": "No feeds available",
+    "lastFetched": "Updated {time} ago"
+  },
+  "frontpage": {
+    "latestDigest": "Press digest",
+    "noDigest": "No digest available",
+    "topStory": "Top story",
+    "generateDigest": "Generate digest",
+    "generating": "Generating...",
+    "generatingDetail": "Analysing articles, please wait (30–90 seconds)...",
+    "lastUpdated": "Updated {time} ago",
+    "noArticles": "No articles available. Subscribe to some feeds to get started.",
+    "goToReader": "Go to Reader →",
+    "readDigest": "Read digest",
+    "digestArticles": "{count} articles",
+    "digestGenerated": "Generated with {provider}"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "search": "Search...",
+    "noResults": "No results"
+  },
+  "reader": {
+    "allFeeds": "All Feeds",
+    "unread": "Unread",
+    "starred": "Starred",
+    "all": "All",
+    "noArticles": "No articles to show",
+    "back": "Back",
+    "openOriginal": "Open original",
+    "loadMore": "Load more",
+    "markAllRead": "Mark all as read",
+    "selectArticle": "Select an article to read"
+  },
+  "admin": {
+    "title": "Administration Panel",
+    "tabs": {
+      "users": "Users",
+      "sessions": "Sessions",
+      "feeds": "Feeds",
+      "categories": "Categories",
+      "llm": "LLM",
+      "plugins": "Plugins"
+    },
+    "users": {
+      "title": "User Management",
+      "newUser": "New user",
+      "editUser": "Edit user",
+      "deleteConfirm": "Delete user {username}? This action cannot be undone.",
+      "role": "Role",
+      "active": "Active",
+      "cannotDeleteSelf": "You cannot delete your own account"
+    },
+    "sessions": {
+      "title": "Active Sessions",
+      "currentSession": "This session",
+      "revokeAll": "Revoke all",
+      "revokeConfirm": "Revoke session for {username}?",
+      "refresh": "Refresh",
+      "lastActive": "Last active",
+      "expiresAt": "Expires at",
+      "noSessions": "No active sessions"
+    },
+    "feeds": {
+      "title": "Feed Catalogue",
+      "addFeed": "Add feed",
+      "editFeed": "Edit feed",
+      "refreshFeed": "Refresh now",
+      "errorCount": "{count} errors",
+      "discovering": "Discovering feed info...",
+      "interval": "Interval (min)",
+      "weight": "Source weight",
+      "deleteConfirm": "Delete feed {title}?",
+      "neverFetched": "Never"
+    },
+    "categories": {
+      "title": "Categories",
+      "addCategory": "New category",
+      "editCategory": "Edit category",
+      "slug": "Slug",
+      "names": "Names",
+      "deleteConfirm": "Delete category {slug}?",
+      "feedCount": "{count} feeds"
+    },
+    "llm": {
+      "title": "LLM Providers",
+      "addProvider": "Add provider",
+      "editProvider": "Edit provider",
+      "healthCheck": "Health check",
+      "checking": "Checking...",
+      "defaultFor": "Default for {useCase}",
+      "deleteConfirm": "Delete provider {label}?",
+      "hasApiKey": "Has API key",
+      "noApiKey": "No API key",
+      "priority": "Priority",
+      "useFor": "Use for",
+      "isDefault": "Default",
+      "endpoint": "Endpoint URL",
+      "apiKey": "API Key",
+      "model": "Model"
+    },
+    "plugins": {
+      "title": "Notification Plugins",
+      "addPlugin": "Add plugin",
+      "editPlugin": "Edit plugin",
+      "testConnection": "Test connection",
+      "testing": "Testing...",
+      "testOk": "Connection OK",
+      "testFailed": "Connection failed",
+      "deleteConfirm": "Delete plugin {label}?",
+      "globalScope": "Global (all users)",
+      "userScope": "Specific user"
+    }
+  },
+  "digest": {
+    "title": "Press Digest",
+    "generate": "Generate digest",
+    "generating": "Generating...",
+    "noDigest": "No digest available",
+    "period": "Period: {start} — {end}",
+    "articles": "{count} articles analysed",
+    "provider": "Generated with {provider}",
+    "deleteConfirm": "Delete this press digest?"
+  },
+  "virtualFeed": {
+    "title": "Virtual Feeds",
+    "create": "New virtual feed",
+    "filterType": {
+      "category": "By category",
+      "tags": "By tags",
+      "mixed": "Mixed"
+    },
+    "rssUrl": "RSS URL",
+    "copyUrl": "Copy URL",
+    "urlCopied": "URL copied!",
+    "regenerateToken": "Regenerate token",
+    "regenerateConfirm": "Regenerating the token will invalidate the old RSS URL. Continue?",
+    "includeDigest": "Include digest as first article",
+    "articleCount": "{count} matching articles",
+    "preview": "Preview"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Interface language",
+    "password": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "sessions": "Active sessions",
+    "sessionInfo": "Access from {ip} on {date}",
+    "currentSession": "Current session",
+    "revokeSession": "Revoke",
+    "revokeConfirm": "Revoke this session?"
+  },
+  "errors": {
+    "network": "Network error. Check your connection.",
+    "unauthorized": "Session expired. Please log in again.",
+    "forbidden": "You do not have permission for this action.",
+    "notFound": "Resource not found.",
+    "serverError": "Server error. Please try again later.",
+    "timeout": "The request took too long. Please try again.",
+    "offline": "You are offline. Some features are unavailable."
+  },
+  "pwa": {
+    "updateAvailable": "An update is available",
+    "updateNow": "Update now",
+    "updateLater": "Later",
+    "offlineMode": "Offline mode — content may be outdated",
+    "offlineArticles": "Articles available offline: {count}"
+  },
+  "languages": {
+    "it": "Italiano",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

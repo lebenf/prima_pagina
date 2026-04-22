@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "frontpage": "Titelseite",
+    "reader": "Reader",
+    "settings": "Einstellungen",
+    "admin": "Administration",
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "username": "Benutzername oder E-Mail",
+    "password": "Passwort",
+    "loginError": "Ungültige Anmeldedaten",
+    "loggingIn": "Anmeldung läuft..."
+  },
+  "article": {
+    "readMore": "Weiterlesen",
+    "markRead": "Als gelesen markieren",
+    "markUnread": "Als ungelesen markieren",
+    "star": "Zu Favoriten hinzufügen",
+    "unstar": "Aus Favoriten entfernen",
+    "loadingFulltext": "Vollständigen Artikel laden...",
+    "fulltextFailed": "Vollständiger Artikel konnte nicht geladen werden",
+    "publishedAt": "Veröffentlicht am {date}",
+    "by": "von {author}"
+  },
+  "feed": {
+    "subscribe": "Abonnieren",
+    "unsubscribe": "Abbestellen",
+    "subscribers": "{count} Abonnenten",
+    "noFeeds": "Keine Feeds verfügbar",
+    "lastFetched": "Aktualisiert vor {time}"
+  },
+  "frontpage": {
+    "latestDigest": "Presseschau",
+    "noDigest": "Keine Presseschau verfügbar",
+    "topStory": "Hauptmeldung",
+    "generateDigest": "Presseschau erstellen",
+    "generating": "Wird erstellt...",
+    "generatingDetail": "Artikel werden analysiert, bitte warten (30–90 Sekunden)...",
+    "lastUpdated": "Aktualisiert vor {time}",
+    "noArticles": "Keine Artikel verfügbar. Abonnieren Sie einige Feeds, um zu beginnen.",
+    "goToReader": "Zum Reader →",
+    "readDigest": "Presseschau lesen",
+    "digestArticles": "{count} Artikel",
+    "digestGenerated": "Erstellt mit {provider}"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Erneut versuchen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "search": "Suchen...",
+    "noResults": "Keine Ergebnisse"
+  },
+  "reader": {
+    "allFeeds": "Alle Feeds",
+    "unread": "Ungelesen",
+    "starred": "Markiert",
+    "all": "Alle",
+    "noArticles": "Keine Artikel vorhanden",
+    "back": "Zurück",
+    "openOriginal": "Original öffnen",
+    "loadMore": "Mehr laden",
+    "markAllRead": "Alle als gelesen markieren",
+    "selectArticle": "Artikel zum Lesen auswählen"
+  },
+  "admin": {
+    "title": "Administrationsbereich",
+    "tabs": {
+      "users": "Benutzer",
+      "sessions": "Sitzungen",
+      "feeds": "Feeds",
+      "categories": "Kategorien",
+      "llm": "LLM",
+      "plugins": "Plugins"
+    },
+    "users": {
+      "title": "Benutzerverwaltung",
+      "newUser": "Neuer Benutzer",
+      "editUser": "Benutzer bearbeiten",
+      "deleteConfirm": "Benutzer {username} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "role": "Rolle",
+      "active": "Aktiv",
+      "cannotDeleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
+    },
+    "sessions": {
+      "title": "Aktive Sitzungen",
+      "currentSession": "Diese Sitzung",
+      "revokeAll": "Alle widerrufen",
+      "revokeConfirm": "Sitzung von {username} widerrufen?",
+      "refresh": "Aktualisieren",
+      "lastActive": "Zuletzt aktiv",
+      "expiresAt": "Läuft ab am",
+      "noSessions": "Keine aktiven Sitzungen"
+    },
+    "feeds": {
+      "title": "Feed-Katalog",
+      "addFeed": "Feed hinzufügen",
+      "editFeed": "Feed bearbeiten",
+      "refreshFeed": "Jetzt aktualisieren",
+      "errorCount": "{count} Fehler",
+      "discovering": "Feed-Informationen werden ermittelt...",
+      "interval": "Intervall (Min)",
+      "weight": "Quellgewicht",
+      "deleteConfirm": "Feed {title} löschen?",
+      "neverFetched": "Nie"
+    },
+    "categories": {
+      "title": "Kategorien",
+      "addCategory": "Neue Kategorie",
+      "editCategory": "Kategorie bearbeiten",
+      "slug": "Slug",
+      "names": "Namen",
+      "deleteConfirm": "Kategorie {slug} löschen?",
+      "feedCount": "{count} Feeds"
+    },
+    "llm": {
+      "title": "LLM-Anbieter",
+      "addProvider": "Anbieter hinzufügen",
+      "editProvider": "Anbieter bearbeiten",
+      "healthCheck": "Gesundheitscheck",
+      "checking": "Wird geprüft...",
+      "defaultFor": "Standard für {useCase}",
+      "deleteConfirm": "Anbieter {label} löschen?",
+      "hasApiKey": "Hat API-Schlüssel",
+      "noApiKey": "Kein API-Schlüssel",
+      "priority": "Priorität",
+      "useFor": "Verwenden für",
+      "isDefault": "Standard",
+      "endpoint": "Endpoint-URL",
+      "apiKey": "API-Schlüssel",
+      "model": "Modell"
+    },
+    "plugins": {
+      "title": "Benachrichtigungs-Plugins",
+      "addPlugin": "Plugin hinzufügen",
+      "editPlugin": "Plugin bearbeiten",
+      "testConnection": "Verbindung testen",
+      "testing": "Test läuft...",
+      "testOk": "Verbindung OK",
+      "testFailed": "Verbindung fehlgeschlagen",
+      "deleteConfirm": "Plugin {label} löschen?",
+      "globalScope": "Global (alle Benutzer)",
+      "userScope": "Bestimmter Benutzer"
+    }
+  },
+  "digest": {
+    "title": "Presseschau",
+    "generate": "Presseschau erstellen",
+    "generating": "Wird erstellt...",
+    "noDigest": "Keine Presseschau verfügbar",
+    "period": "Zeitraum: {start} — {end}",
+    "articles": "{count} analysierte Artikel",
+    "provider": "Erstellt mit {provider}",
+    "deleteConfirm": "Diese Presseschau löschen?"
+  },
+  "virtualFeed": {
+    "title": "Virtuelle Feeds",
+    "create": "Neuer virtueller Feed",
+    "filterType": {
+      "category": "Nach Kategorie",
+      "tags": "Nach Tags",
+      "mixed": "Gemischt"
+    },
+    "rssUrl": "RSS-URL",
+    "copyUrl": "URL kopieren",
+    "urlCopied": "URL kopiert!",
+    "regenerateToken": "Token neu generieren",
+    "regenerateConfirm": "Ein neues Token macht die alte RSS-URL ungültig. Fortfahren?",
+    "includeDigest": "Presseschau als ersten Artikel einschließen",
+    "articleCount": "{count} passende Artikel",
+    "preview": "Vorschau"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Oberflächensprache",
+    "password": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "sessions": "Aktive Sitzungen",
+    "sessionInfo": "Zugriff von {ip} am {date}",
+    "currentSession": "Aktuelle Sitzung",
+    "revokeSession": "Widerrufen",
+    "revokeConfirm": "Diese Sitzung widerrufen?"
+  },
+  "errors": {
+    "network": "Netzwerkfehler. Überprüfen Sie Ihre Verbindung.",
+    "unauthorized": "Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+    "forbidden": "Sie haben keine Berechtigung für diese Aktion.",
+    "notFound": "Ressource nicht gefunden.",
+    "serverError": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "timeout": "Die Anfrage hat zu lange gedauert. Versuchen Sie es erneut.",
+    "offline": "Sie sind offline. Einige Funktionen sind nicht verfügbar."
+  },
+  "pwa": {
+    "updateAvailable": "Ein Update ist verfügbar",
+    "updateNow": "Jetzt aktualisieren",
+    "updateLater": "Später",
+    "offlineMode": "Offline-Modus — Inhalte möglicherweise veraltet",
+    "offlineArticles": "Offline verfügbare Artikel: {count}"
+  },
+  "languages": {
+    "it": "Italiano",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

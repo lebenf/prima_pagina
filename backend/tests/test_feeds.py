@@ -230,6 +230,33 @@ async def test_subscribed_only_filter(user_client, subscribed_feed, sample_feeds
 # ---------------------------------------------------------------------------
 
 
-async def test_refresh_returns_501(admin_client, sample_feed):
+async def test_refresh_returns_202(admin_client, sample_feed):
     resp = await admin_client.post(f"/api/v1/feeds/{sample_feed.id}/refresh")
-    assert resp.status_code == 501
+    assert resp.status_code == 202
+
+
+async def test_create_feed_ssrf_localhost_blocked(admin_client):
+    resp = await admin_client.post("/api/v1/feeds", json={"url": "http://localhost/evil"})
+    assert resp.status_code == 422
+
+
+async def test_create_feed_ssrf_private_ip_blocked(admin_client):
+    resp = await admin_client.post("/api/v1/feeds", json={"url": "http://192.168.1.1/feed"})
+    assert resp.status_code == 422
+
+
+async def test_create_feed_ssrf_loopback_ip_blocked(admin_client):
+    resp = await admin_client.post("/api/v1/feeds", json={"url": "http://127.0.0.1/feed"})
+    assert resp.status_code == 422
+
+
+async def test_create_feed_ssrf_ftp_blocked(admin_client):
+    resp = await admin_client.post("/api/v1/feeds", json={"url": "ftp://example.com/feed"})
+    assert resp.status_code == 422
+
+
+def test_validate_feed_url_allows_public_domains():
+    from app.services.feed_service import validate_feed_url
+    # Should not raise
+    validate_feed_url("https://feeds.bbci.co.uk/news/rss.xml")
+    validate_feed_url("http://rss.example.com/feed.atom")

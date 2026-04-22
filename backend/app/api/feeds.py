@@ -1,10 +1,13 @@
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
 from app.database import get_db
+from app.models.feed import Feed
 from app.models.user import User
 from app.schemas.common import Page
 from app.schemas.feed import FeedCreate, FeedResponse, FeedUpdate, SubscriptionUpdate
@@ -38,6 +41,20 @@ async def list_feeds(
         page=page,
         size=size,
     )
+
+
+@router.post("/feeds/discover")
+async def discover_feed(
+    body: dict,
+    _: User = Depends(get_current_user),
+):
+    """Auto-discover feed title and metadata from a URL."""
+    url = body.get("url", "")
+    if not url:
+        raise HTTPException(status_code=422, detail="url required")
+    feed_service.validate_feed_url(url)
+    info = await feed_service.try_autodiscover_feed_info(url)
+    return {"title": info.get("title", ""), "description": info.get("description")}
 
 
 @router.post("/feeds", response_model=FeedResponse, status_code=status.HTTP_201_CREATED)
@@ -113,5 +130,16 @@ async def refresh_feed(
     _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    # Full implementation in T04
-    raise HTTPException(status_code=501, detail="Manual refresh not implemented yet")
+    result = await db.execute(select(Feed).where(Feed.id == feed_id))
+    feed = result.scalar_one_or_none()
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Feed not found")
+
+    async def _do_refresh():
+        from app.database import AsyncSessionLocal
+        from app.services.feed_fetcher import fetch_feed
+        async with AsyncSessionLocal() as session:
+            await fetch_feed(feed_id, session)
+
+    asyncio.create_task(_do_refresh())
+    return {"detail": "Refresh enqueued"}

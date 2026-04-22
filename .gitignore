@@ -31,6 +31,7 @@ frontend/.vite/
 .vscode/
 *.swp
 *.swo
+.tasks/
 
 # OS
 .DS_Store

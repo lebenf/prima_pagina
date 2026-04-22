@@ -1,6 +1,8 @@
+import json
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,8 +20,18 @@ class Settings(BaseSettings):
     session_max_age_days: int = 30
     secure_cookies: bool = False
 
-    # CORS
+    # CORS — accepts JSON array or comma-separated string in .env
     allowed_origins: list[str] = ["http://localhost:5173"]
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_origins(cls, v: object) -> object:
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                return json.loads(v)
+            return [o.strip() for o in v.split(",") if o.strip()]
+        return v
 
     # Scheduler
     feed_default_interval_min: int = 60
@@ -28,6 +40,9 @@ class Settings(BaseSettings):
     # LLM
     ollama_endpoint: str = "http://localhost:11434"
     anthropic_api_key: str = ""
+
+    # Notifications
+    app_base_url: str = "http://localhost:5173"
 
     # Initial admin (optional)
     admin_email: str | None = None

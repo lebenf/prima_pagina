@@ -1,9 +1,12 @@
 import asyncio
+import ipaddress
 import logging
 import xml.etree.ElementTree as ET
+from urllib.parse import urlparse
 from uuid import UUID
 
 import httpx
+from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +21,22 @@ _RSS_NS = {
     "atom": "http://www.w3.org/2005/Atom",
     "rss": "",
 }
+
+
+def validate_feed_url(url: str) -> None:
+    """Prevent SSRF: block URLs pointing to private/localhost addresses."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise HTTPException(status_code=422, detail="Solo URL http/https sono consentiti")
+    hostname = parsed.hostname or ""
+    if hostname.lower() in ("localhost", "127.0.0.1", "::1"):
+        raise HTTPException(status_code=422, detail="URL localhost non consentito")
+    try:
+        addr = ipaddress.ip_address(hostname)
+        if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved:
+            raise HTTPException(status_code=422, detail="Indirizzi IP privati non consentiti")
+    except ValueError:
+        pass  # hostname is a domain name, not an IP — allow it
 
 
 async def try_autodiscover_feed_info(url: str) -> dict:
@@ -170,10 +189,10 @@ async def get_feed_by_id(
 
 async def create_feed(db: AsyncSession, data: FeedCreate) -> FeedResponse:
     url_str = str(data.url)
+    validate_feed_url(url_str)
     # Check for duplicate
     existing = await db.scalar(select(Feed).where(Feed.url == url_str))
     if existing is not None:
-        from fastapi import HTTPException
         raise HTTPException(status_code=409, detail="Feed URL already exists")
 
     feed = Feed(

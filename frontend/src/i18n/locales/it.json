@@ -1,0 +1,216 @@
+{
+  "nav": {
+    "frontpage": "Prima Pagina",
+    "reader": "Reader",
+    "settings": "Impostazioni",
+    "admin": "Amministrazione",
+    "logout": "Esci"
+  },
+  "auth": {
+    "login": "Accedi",
+    "username": "Nome utente o email",
+    "password": "Password",
+    "loginError": "Credenziali non valide",
+    "loggingIn": "Accesso in corso..."
+  },
+  "article": {
+    "readMore": "Leggi tutto",
+    "markRead": "Segna come letto",
+    "markUnread": "Segna come non letto",
+    "star": "Aggiungi ai preferiti",
+    "unstar": "Rimuovi dai preferiti",
+    "loadingFulltext": "Caricamento articolo completo...",
+    "fulltextFailed": "Impossibile caricare l'articolo completo",
+    "publishedAt": "Pubblicato il {date}",
+    "by": "di {author}"
+  },
+  "feed": {
+    "subscribe": "Iscriviti",
+    "unsubscribe": "Disiscrivi",
+    "subscribers": "{count} iscritti",
+    "noFeeds": "Nessun feed disponibile",
+    "lastFetched": "Aggiornato {time} fa"
+  },
+  "frontpage": {
+    "latestDigest": "Rassegna stampa",
+    "noDigest": "Nessuna rassegna stampa disponibile",
+    "topStory": "Notizia principale",
+    "generateDigest": "Genera rassegna",
+    "generating": "Generazione in corso...",
+    "generatingDetail": "Sto analizzando gli articoli, attendere (30–90 secondi)...",
+    "lastUpdated": "Aggiornato {time} fa",
+    "noArticles": "Nessun articolo disponibile. Iscriviti ad alcuni feed per iniziare.",
+    "goToReader": "Vai al Reader →",
+    "readDigest": "Leggi la rassegna",
+    "digestArticles": "{count} articoli",
+    "digestGenerated": "Generato con {provider}"
+  },
+  "common": {
+    "loading": "Caricamento...",
+    "error": "Si è verificato un errore",
+    "retry": "Riprova",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "confirm": "Conferma",
+    "search": "Cerca...",
+    "noResults": "Nessun risultato"
+  },
+  "reader": {
+    "allFeeds": "Tutti i feed",
+    "unread": "Non letti",
+    "starred": "Stellati",
+    "all": "Tutti",
+    "noArticles": "Nessun articolo da mostrare",
+    "back": "Indietro",
+    "openOriginal": "Apri originale",
+    "loadMore": "Carica altri",
+    "markAllRead": "Segna tutto come letto",
+    "selectArticle": "Seleziona un articolo da leggere"
+  },
+  "admin": {
+    "title": "Pannello Amministrazione",
+    "tabs": {
+      "users": "Utenti",
+      "sessions": "Sessioni",
+      "feeds": "Feed",
+      "categories": "Categorie",
+      "llm": "LLM",
+      "plugins": "Plugin"
+    },
+    "users": {
+      "title": "Gestione Utenti",
+      "newUser": "Nuovo utente",
+      "editUser": "Modifica utente",
+      "deleteConfirm": "Eliminare l'utente {username}? Questa azione non è reversibile.",
+      "role": "Ruolo",
+      "active": "Attivo",
+      "cannotDeleteSelf": "Non puoi eliminare il tuo account"
+    },
+    "sessions": {
+      "title": "Sessioni Attive",
+      "currentSession": "Questa sessione",
+      "revokeAll": "Revoca tutte",
+      "revokeConfirm": "Revocare la sessione di {username}?",
+      "refresh": "Aggiorna",
+      "lastActive": "Ultimo accesso",
+      "expiresAt": "Scade il",
+      "noSessions": "Nessuna sessione attiva"
+    },
+    "feeds": {
+      "title": "Catalogo Feed",
+      "addFeed": "Aggiungi feed",
+      "editFeed": "Modifica feed",
+      "refreshFeed": "Aggiorna ora",
+      "errorCount": "{count} errori",
+      "discovering": "Rilevamento info feed...",
+      "interval": "Intervallo (min)",
+      "weight": "Peso sorgente",
+      "deleteConfirm": "Eliminare il feed {title}?",
+      "neverFetched": "Mai"
+    },
+    "categories": {
+      "title": "Categorie",
+      "addCategory": "Nuova categoria",
+      "editCategory": "Modifica categoria",
+      "slug": "Slug",
+      "names": "Nomi",
+      "deleteConfirm": "Eliminare la categoria {slug}?",
+      "feedCount": "{count} feed"
+    },
+    "llm": {
+      "title": "Provider LLM",
+      "addProvider": "Aggiungi provider",
+      "editProvider": "Modifica provider",
+      "healthCheck": "Health check",
+      "checking": "Verifica in corso...",
+      "defaultFor": "Default per {useCase}",
+      "deleteConfirm": "Eliminare il provider {label}?",
+      "hasApiKey": "Ha API key",
+      "noApiKey": "Nessuna API key",
+      "priority": "Priorità",
+      "useFor": "Usa per",
+      "isDefault": "Default",
+      "endpoint": "Endpoint URL",
+      "apiKey": "API Key",
+      "model": "Modello"
+    },
+    "plugins": {
+      "title": "Plugin Notifiche",
+      "addPlugin": "Aggiungi plugin",
+      "editPlugin": "Modifica plugin",
+      "testConnection": "Test connessione",
+      "testing": "Test in corso...",
+      "testOk": "Connessione OK",
+      "testFailed": "Connessione fallita",
+      "deleteConfirm": "Eliminare il plugin {label}?",
+      "globalScope": "Globale (tutti gli utenti)",
+      "userScope": "Utente specifico"
+    }
+  },
+  "digest": {
+    "title": "Rassegna Stampa",
+    "generate": "Genera rassegna",
+    "generating": "Generazione in corso...",
+    "noDigest": "Nessuna rassegna disponibile",
+    "period": "Periodo: {start} — {end}",
+    "articles": "{count} articoli analizzati",
+    "provider": "Generato con {provider}",
+    "deleteConfirm": "Eliminare questa rassegna stampa?"
+  },
+  "virtualFeed": {
+    "title": "Feed Virtuali",
+    "create": "Nuovo feed virtuale",
+    "filterType": {
+      "category": "Per categoria",
+      "tags": "Per tag",
+      "mixed": "Misto"
+    },
+    "rssUrl": "URL RSS",
+    "copyUrl": "Copia URL",
+    "urlCopied": "URL copiato!",
+    "regenerateToken": "Rigenera token",
+    "regenerateConfirm": "Rigenerare il token invalida il vecchio URL RSS. Continuare?",
+    "includeDigest": "Includi rassegna stampa come primo articolo",
+    "articleCount": "{count} articoli corrispondenti",
+    "preview": "Anteprima"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "language": "Lingua interfaccia",
+    "password": "Cambio password",
+    "currentPassword": "Password attuale",
+    "newPassword": "Nuova password",
+    "confirmPassword": "Conferma password",
+    "passwordMismatch": "Le password non corrispondono",
+    "sessions": "Sessioni attive",
+    "sessionInfo": "Accesso da {ip} il {date}",
+    "currentSession": "Sessione corrente",
+    "revokeSession": "Revoca",
+    "revokeConfirm": "Revocare questa sessione?"
+  },
+  "errors": {
+    "network": "Errore di rete. Verifica la connessione.",
+    "unauthorized": "Sessione scaduta. Effettua nuovamente l'accesso.",
+    "forbidden": "Non hai i permessi per questa azione.",
+    "notFound": "Risorsa non trovata.",
+    "serverError": "Errore del server. Riprova più tardi.",
+    "timeout": "La richiesta ha impiegato troppo tempo. Riprova.",
+    "offline": "Sei offline. Alcune funzionalità non sono disponibili."
+  },
+  "pwa": {
+    "updateAvailable": "È disponibile un aggiornamento",
+    "updateNow": "Aggiorna ora",
+    "updateLater": "Più tardi",
+    "offlineMode": "Modalità offline — contenuto non aggiornato",
+    "offlineArticles": "Articoli disponibili offline: {count}"
+  },
+  "languages": {
+    "it": "Italiano",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

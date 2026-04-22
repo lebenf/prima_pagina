@@ -1,0 +1,78 @@
+/* Testata stile giornale */
+.masthead {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-align: center;
+  border-top: 3px solid #1a1a1a;
+  border-bottom: 3px solid #1a1a1a;
+  padding: 0.5rem 0;
+}
+
+/* Regola orizzontale stile giornale */
+.newspaper-rule {
+  border: none;
+  border-top: 1px solid #1a1a1a;
+  margin: 1rem 0;
+}
+
+.newspaper-rule.double {
+  border-top: 3px double #1a1a1a;
+}
+
+/* Layout colonne */
+.columns-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0;
+  border-top: 2px solid #1a1a1a;
+}
+
+.category-column {
+  padding: 1rem;
+  border-right: 1px solid #d4c5b0;
+}
+
+.category-column:last-child {
+  border-right: none;
+}
+
+/* Seconda fascia */
+.second-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+.second-row-article {
+  padding: 1rem;
+  border-right: 1px solid #d4c5b0;
+}
+
+.second-row-article:last-child {
+  border-right: none;
+}
+
+/* Skeleton animation */
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .masthead { font-size: 2rem; }
+  .second-row { grid-template-columns: 1fr; }
+  .columns-section { grid-template-columns: 1fr; }
+  .category-column { border-right: none; border-bottom: 1px solid #d4c5b0; }
+  .second-row-article { border-right: none; border-bottom: 1px solid #d4c5b0; }
+}

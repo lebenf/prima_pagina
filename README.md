@@ -1,73 +1,134 @@
 # Prima Pagina
 
-Self-hosted RSS aggregation PWA with LLM-based article tagging and digest generation.
+Self-hosted RSS aggregation PWA with AI-powered tagging and digest generation.
+
+## Features
+
+- **RSS aggregation** — subscribe to any RSS/Atom feed, auto-deduplication, configurable polling intervals
+- **Newspaper front page** — articles ranked by recency, source weight, and your reading history
+- **AI tagging** — automatic category tagging via Ollama (local) or Claude (Anthropic API)
+- **Press digest** — daily LLM-generated summary of top articles, scheduled or on-demand
+- **Virtual feeds** — filter articles by category/tag, export as RSS/Atom with token auth
+- **Plugin notifications** — Telegram bot for new articles and digest alerts
+- **Multilingual** — interface in IT, EN, FR, DE, ES, PT
+- **PWA** — installable on mobile, articles readable offline after first visit
+- **Multi-user** — session-based auth, admin panel, per-user preferences
 
 ## Requirements
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (package manager)
-- Node.js 20+ (frontend, from T06 onwards)
-- Docker / Podman with Compose (optional)
+- Docker / Podman with Compose (recommended)
+- Or: Python 3.11+ with [uv](https://docs.astral.sh/uv/) and Node.js 18+
+- Optional: Ollama (self-hosted LLM)
+- Optional: Anthropic API key (Claude)
 
-## Quick start (backend)
-
-```bash
-cd backend
-
-# Install dependencies
-uv sync --group dev
-
-# Copy and edit environment variables
-cp ../.env.example .env
-# Edit .env: set SECRET_KEY and ENCRYPTION_KEY (see generation commands inside the file)
-
-# Create data directory and run migrations
-mkdir -p data
-python -m alembic upgrade head
-
-# Start development server
-uvicorn app.main:app --reload --port 8000
-```
-
-Health check: `curl http://localhost:8000/api/v1/health`
-
-## Run tests
+## Quick Start — Docker (recommended)
 
 ```bash
-cd backend
-SECRET_KEY=test ENCRYPTION_KEY=<any-base64> python -m pytest tests/ -v
-```
+git clone <repo-url>
+cd prima-pagina
 
-## Docker (full stack)
-
-```bash
-# Copy and configure environment
+# Configure environment
 cp .env.example .env
+# Edit .env — at minimum set SECRET_KEY and ENCRYPTION_KEY:
+#   SECRET_KEY:      python -c "import secrets; print(secrets.token_hex(32))"
+#   ENCRYPTION_KEY:  python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
-# Development (hot reload)
+# Development (hot reload, ports exposed)
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 # Production
-docker compose up
+docker compose up -d
 ```
 
-## Development task plan
+Frontend: http://localhost  
+Backend API: http://localhost:8000  
+API docs: http://localhost:8000/api/docs
 
-See `CLAUDE.md` for architecture details and `docs/tasks/` for individual task specs.
+## Quick Start — Local Development
 
-| Task | Status |
-|------|--------|
-| T01 — Monorepo setup, Docker, DB, config | ✅ |
-| T02 — Session-based auth | ⬜ |
-| T03 — Feed management | ⬜ |
-| T04 — Feed fetcher & scheduler | ⬜ |
-| T05 — Article API | ⬜ |
-| T06 — Frontend scaffold | ⬜ |
-| T07 — Frontend Reader | ⬜ |
-| T08 — LLM service | ⬜ |
-| T09 — Virtual Feeds | ⬜ |
-| T10 — Digest | ⬜ |
-| T11 — Frontend Front Page | ⬜ |
-| T12 — Plugin system | ⬜ |
-| T13 — Admin panel | ⬜ |
-| T14 — Polish & PWA | ⬜ |
+```bash
+# Backend
+cd backend
+uv sync --group dev
+cp ../.env.example .env   # edit as needed
+mkdir -p data
+python -m alembic upgrade head
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (in separate terminal)
+cd frontend
+npm install
+npm run dev   # http://localhost:5173
+```
+
+## First Access
+
+Default admin credentials (configurable via `.env`):
+
+| Field | Default |
+|-------|---------|
+| Username | `admin` |
+| Password | Set via `ADMIN_PASSWORD` env var |
+
+Change the password immediately after first login via Settings → Change password.
+
+## Optional Services
+
+```bash
+# With PostgreSQL
+docker compose --profile postgres up -d
+
+# With self-hosted Ollama
+docker compose --profile ollama up -d
+```
+
+## Project Structure
+
+```
+prima-pagina/
+├── backend/          # FastAPI application (Python)
+│   ├── app/          # Application code
+│   ├── alembic/      # Database migrations
+│   └── tests/        # Test suite (pytest)
+├── frontend/         # Vue 3 PWA (TypeScript)
+│   ├── src/          # Source code
+│   └── tests/        # Vitest test suite
+├── docs/             # Documentation
+├── docker-compose.yml
+└── .env.example
+```
+
+## Updating
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Migrations run automatically on startup.
+
+## Backup
+
+Data lives in the `prima_pagina_data` Docker volume (SQLite) or the `prima_pagina_pg_data` volume (PostgreSQL).
+
+```bash
+# SQLite backup
+docker run --rm -v prima_pagina_data:/data -v $(pwd):/backup alpine \
+  tar czf /backup/prima_pagina_backup_$(date +%Y%m%d).tar.gz /data
+```
+
+## Running Tests
+
+```bash
+# Backend
+cd backend
+SECRET_KEY=test ENCRYPTION_KEY=dGVzdA== python -m pytest tests/ -v
+
+# Frontend
+cd frontend
+npm run test
+```
+
+## License
+
+MIT

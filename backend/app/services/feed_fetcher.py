@@ -217,6 +217,9 @@ async def fetch_feed(feed_id: UUID, db: AsyncSession) -> int:
         article = await _process_entry(entry, feed_language, feed.id, db)
         if article is not None:
             new_count += 1
+            from app.services.llm.tagging import enqueue_article_for_tagging
+            await enqueue_article_for_tagging(article.id)
+            await _dispatch_new_article_notification(article, feed, db)
 
     feed.last_fetched_at = datetime.utcnow()
     feed.last_status = status_code
@@ -290,3 +293,39 @@ async def fetch_all_due_feeds(db: AsyncSession) -> list[UUID]:
         asyncio.create_task(_fetch_feed_with_session(feed_id))
 
     return feed_ids
+
+
+def _strip_html(html: str) -> str:
+    import bleach
+    return bleach.clean(html, tags=[], strip=True)
+
+
+async def _dispatch_new_article_notification(article, feed, db: AsyncSession) -> None:
+    try:
+        from app.models.user_feed import UserFeed
+        from app.models.user import User
+        from app.plugins.base import NotificationEvent, NotificationPayload
+        from app.plugins.manager import plugin_manager
+
+        result = await db.execute(
+            select(User)
+            .join(UserFeed, UserFeed.user_id == User.id)
+            .where(
+                UserFeed.feed_id == feed.id,
+                UserFeed.notify_on_new == True,  # noqa: E712
+            )
+        )
+        users = result.scalars().all()
+
+        for user in users:
+            payload = NotificationPayload(
+                event=NotificationEvent.NEW_ARTICLE,
+                user_id=str(user.id),
+                title=article.title or "(senza titolo)",
+                body=_strip_html(article.content_excerpt or ""),
+                url=article.url,
+                metadata={"feed_id": str(article.feed_id), "article_id": str(article.id)},
+            )
+            asyncio.create_task(plugin_manager.dispatch(NotificationEvent.NEW_ARTICLE, payload, db))
+    except Exception as e:
+        logger.warning("feed_fetcher: notification dispatch error: %s", e)
