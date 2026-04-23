@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum

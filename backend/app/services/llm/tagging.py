@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Background tagging queue: processes new articles via LLM without blocking the feed fetcher.
 Uses asyncio.Queue — single coroutine worker, no DB concurrency issues.

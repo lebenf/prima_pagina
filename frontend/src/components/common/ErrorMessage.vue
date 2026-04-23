@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
     <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

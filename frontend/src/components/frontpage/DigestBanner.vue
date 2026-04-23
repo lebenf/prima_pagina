@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="digest-banner flex items-center gap-3 px-4 py-3 mb-4 rounded" style="background: #fdf8e1; border: 1px solid #e8d87a;">
     <span class="text-xl flex-shrink-0">📰</span>

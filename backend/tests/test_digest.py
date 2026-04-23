@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Tests for T10 — Digest generation."""
 import uuid
 from datetime import datetime, timedelta

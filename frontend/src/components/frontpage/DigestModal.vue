@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <teleport to="body">
     <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 md:p-8" @click.self="$emit('close')">

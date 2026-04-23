@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="frontpage-container max-w-6xl mx-auto px-4 py-4">
 

@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="flex items-center gap-1 px-4 py-2 border-b border-gray-200 bg-white">
     <button

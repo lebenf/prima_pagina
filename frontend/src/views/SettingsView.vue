@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="p-6">
     <h1 class="font-serif text-2xl font-bold text-newspaper-text mb-4">

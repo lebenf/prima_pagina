@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Lorenzo Benfeati
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'

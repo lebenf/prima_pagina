@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="category-column">
     <header class="category-header mb-3 pb-1 border-b-2" :style="{ borderColor: headerColor }">

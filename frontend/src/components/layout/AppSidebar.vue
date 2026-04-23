@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <aside
     class="flex flex-col bg-primary-900 text-white transition-all duration-200 overflow-hidden shadow-lg"

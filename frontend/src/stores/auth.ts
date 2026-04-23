@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Lorenzo Benfeati
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { authApi, type User } from '@/api/auth'

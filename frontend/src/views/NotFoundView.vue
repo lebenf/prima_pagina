@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="min-h-screen flex items-center justify-center bg-newspaper-bg px-4">
     <div class="text-center">

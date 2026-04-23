@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Tests for plugin system base + manager."""
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch

@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <nav class="flex flex-col h-full overflow-y-auto py-2">
     <!-- All feeds -->

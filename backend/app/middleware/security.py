@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 

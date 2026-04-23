@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <article class="second-row-article cursor-pointer hover:bg-gray-50 transition-colors" @click="$emit('click')">
     <span v-if="article.tags?.length" class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1 block">

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Lorenzo Benfeati
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { createI18n } from 'vue-i18n'
 
 export const SUPPORTED_LOCALES = ['it', 'en', 'fr', 'de', 'es', 'pt'] as const

@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="flex flex-col h-full overflow-hidden border-r border-gray-200">
     <ReaderFilters />

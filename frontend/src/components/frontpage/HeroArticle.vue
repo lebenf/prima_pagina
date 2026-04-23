@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <article class="hero-article cursor-pointer border-b-2 border-gray-800 pb-4 mb-4" @click="$emit('click')">
     <div class="flex gap-4">

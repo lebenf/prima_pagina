@@ -1,3 +1,5 @@
+// Copyright (C) 2026 Lorenzo Benfeati
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'

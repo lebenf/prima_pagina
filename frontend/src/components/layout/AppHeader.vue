@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <header class="h-14 flex items-center gap-4 px-4 bg-primary-900 text-white shadow-md z-10 flex-shrink-0">
     <!-- Hamburger / logo -->

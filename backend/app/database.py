@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Lorenzo Benfeati
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from collections.abc import AsyncGenerator
 
 from sqlalchemy import event, text
