@@ -73,6 +73,10 @@
               <label>{{ t('admin.llm.priority') }}</label>
               <input v-model.number="form.priority" type="number" min="1" max="100" />
             </div>
+            <div class="form-group">
+              <label>Timeout (sec)</label>
+              <input v-model.number="form.timeout_sec" type="number" min="30" max="3600" />
+            </div>
             <div class="form-group form-group-inline">
               <label>{{ t('admin.llm.isDefault') }}</label>
               <input v-model="form.is_default" type="checkbox" />
@@ -118,6 +122,7 @@ const defaultForm = (): LLMConfigCreate & { api_key: string } => ({
   is_default: false,
   is_active: true,
   priority: 10,
+  timeout_sec: 300,
 })
 
 const form = ref(defaultForm())
@@ -136,6 +141,7 @@ watch(() => props.config, (c) => {
       is_default: c.is_default,
       is_active: c.is_active,
       priority: c.priority,
+      timeout_sec: c.timeout_sec,
     }
   } else {
     form.value = defaultForm()
@@ -153,6 +159,7 @@ async function submit() {
       is_default: form.value.is_default,
       is_active: form.value.is_active,
       priority: form.value.priority,
+      timeout_sec: form.value.timeout_sec,
     }
     if (form.value.label) payload.label = form.value.label
     if (form.value.endpoint_url) payload.endpoint_url = form.value.endpoint_url

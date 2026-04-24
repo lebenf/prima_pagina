@@ -39,4 +39,7 @@ export const authApi = {
 
   updateMe: (data: Partial<Pick<User, 'preferred_lang'>>) =>
     client.patch<User>('/auth/me', data),
+
+  updatePassword: (current_password: string, new_password: string) =>
+    client.patch<User>('/auth/me', { current_password, new_password }),
 }

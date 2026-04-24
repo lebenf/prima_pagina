@@ -140,3 +140,9 @@ LOG_LEVEL=INFO
 | T14 | Polish: full i18n, PWA offline, docs | T13 |
 
 Detailed task specs are in `docs/tasks/T01.md` etc.
+
+---
+
+## Features.md
+
+`Features.md` at the repo root lists all implemented features. **Keep it updated**: whenever a new feature is added, an existing one is changed, or a bug fix alters visible behaviour, update `Features.md` accordingly — add, edit or remove entries as needed. Do not let it go stale.

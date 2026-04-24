@@ -47,14 +47,14 @@ export interface AdminSession {
 export interface AdminFeed {
   id: string
   url: string
-  title: string
+  title: string | null
   category_id: string | null
-  category_name: string | null
   fetch_interval_min: number
   source_weight: number
   is_active: boolean
+  is_subscribed: boolean
   last_fetched_at: string | null
-  last_http_status: number | null
+  last_status: number | null
   error_count: number
 }
 
@@ -92,6 +92,7 @@ export interface LLMConfig {
   is_default: boolean
   is_active: boolean
   priority: number
+  timeout_sec: number
   created_at: string
 }
 
@@ -105,6 +106,7 @@ export interface LLMConfigCreate {
   is_default: boolean
   is_active: boolean
   priority: number
+  timeout_sec: number
 }
 
 // ── Plugin ──────────────────────────────────────────────────
@@ -143,23 +145,23 @@ export const adminApi = {
   sessions: {
     list: () => client.get<AdminSession[]>('/admin/sessions'),
     revoke: (id: string) => client.delete(`/admin/sessions/${id}`),
-    revokeAllForUser: (userId: string) => client.delete(`/admin/sessions/user/${userId}`),
+    revokeAllForUser: (userId: string) => client.delete(`/admin/sessions`, { data: { user_id: userId } }),
   },
 
   feeds: {
-    list: () => client.get<AdminFeed[]>('/admin/feeds'),
-    create: (data: FeedCreate) => client.post<AdminFeed>('/admin/feeds', data),
-    update: (id: string, data: Partial<FeedCreate>) => client.put<AdminFeed>(`/admin/feeds/${id}`, data),
-    delete: (id: string) => client.delete(`/admin/feeds/${id}`),
+    list: () => client.get<{ items: AdminFeed[]; total: number; page: number; pages: number }>('/feeds', { params: { size: 200 } }),
+    create: (data: FeedCreate) => client.post<AdminFeed>('/feeds', data),
+    update: (id: string, data: Partial<FeedCreate>) => client.put<AdminFeed>(`/feeds/${id}`, data),
+    delete: (id: string) => client.delete(`/feeds/${id}`),
     refresh: (id: string) => client.post(`/feeds/${id}/refresh`),
     discover: (url: string) => client.post<{ title: string; description: string | null }>('/feeds/discover', { url }),
   },
 
   categories: {
     list: () => client.get<AdminCategory[]>('/categories'),
-    create: (data: CategoryCreate) => client.post<AdminCategory>('/admin/categories', data),
-    update: (id: string, data: CategoryCreate) => client.put<AdminCategory>(`/admin/categories/${id}`, data),
-    delete: (id: string) => client.delete(`/admin/categories/${id}`),
+    create: (data: CategoryCreate) => client.post<AdminCategory>('/categories', data),
+    update: (id: string, data: CategoryCreate) => client.put<AdminCategory>(`/categories/${id}`, data),
+    delete: (id: string) => client.delete(`/categories/${id}`),
   },
 
   llm: {

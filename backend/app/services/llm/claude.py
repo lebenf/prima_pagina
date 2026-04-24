@@ -16,7 +16,8 @@ class ClaudeProvider(LLMProvider):
     def __init__(self, config, encryption_key: str = ""):
         super().__init__(config)
         api_key = self._resolve_api_key(config, encryption_key)
-        self._client = anthropic.AsyncAnthropic(api_key=api_key)
+        timeout_sec = getattr(config, "timeout_sec", 300)
+        self._client = anthropic.AsyncAnthropic(api_key=api_key, timeout=float(timeout_sec))
 
     @staticmethod
     def _resolve_api_key(config, encryption_key: str) -> str:

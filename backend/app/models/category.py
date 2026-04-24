@@ -4,10 +4,11 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.types import SafeJSON
 
 
 class Category(Base):
@@ -15,7 +16,7 @@ class Category(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    name: Mapped[dict] = mapped_column(JSON, nullable=False)
+    name: Mapped[dict] = mapped_column(SafeJSON, nullable=False)
     parent_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("categories.id"), nullable=True
     )

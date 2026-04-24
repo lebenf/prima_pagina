@@ -4,10 +4,11 @@ import uuid
 from datetime import datetime
 
 from cryptography.fernet import Fernet
-from sqlalchemy import JSON, Boolean, Integer, String, Text
+from sqlalchemy import Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.types import SafeJSON
 
 
 class LLMConfig(Base):
@@ -19,10 +20,11 @@ class LLMConfig(Base):
     model_name: Mapped[str] = mapped_column(String(100), nullable=False)
     endpoint_url: Mapped[str | None] = mapped_column(String(2048))
     api_key_encrypted: Mapped[str | None] = mapped_column(Text)
-    use_for: Mapped[list] = mapped_column(JSON, default=lambda: ["tagging", "digest"])
+    use_for: Mapped[list] = mapped_column(SafeJSON, default=lambda: ["tagging", "digest"])
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     priority: Mapped[int] = mapped_column(Integer, default=0)
+    timeout_sec: Mapped[int] = mapped_column(Integer, default=300)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     def set_api_key(self, plain: str, fernet_key: str) -> None:

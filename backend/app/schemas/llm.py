@@ -17,6 +17,7 @@ class LLMConfigCreate(BaseModel):
     is_default: bool = False
     is_active: bool = True
     priority: int = 0
+    timeout_sec: int = 300
 
 
 class LLMConfigUpdate(BaseModel):
@@ -28,6 +29,7 @@ class LLMConfigUpdate(BaseModel):
     is_default: bool | None = None
     is_active: bool | None = None
     priority: int | None = None
+    timeout_sec: int | None = None
 
 
 class LLMConfigResponse(BaseModel):
@@ -41,6 +43,7 @@ class LLMConfigResponse(BaseModel):
     is_default: bool
     is_active: bool
     priority: int
+    timeout_sec: int
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

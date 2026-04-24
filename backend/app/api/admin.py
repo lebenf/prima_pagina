@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import time
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,8 +15,10 @@ from app.api.deps import get_db, require_admin
 from app.config import get_settings
 from app.models.llm_config import LLMConfig
 from app.models.plugin_config import PluginConfig
+from app.models.session import Session
 from app.models.user import User
 from app.plugins.manager import PLUGIN_DESCRIPTIONS, PLUGIN_LABELS, PLUGIN_REGISTRY
+from app.schemas.auth import UserResponse
 from app.schemas.llm import (
     HealthCheckResponse,
     LLMConfigCreate,
@@ -33,6 +38,197 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Admin-specific schemas
+# ---------------------------------------------------------------------------
+
+class AdminUserCreate(BaseModel):
+    email: EmailStr
+    username: str = Field(min_length=3, max_length=100)
+    password: str = Field(min_length=8)
+    role: Literal["admin", "user"] = "user"
+    preferred_lang: str = "it"
+    is_active: bool = True
+
+
+class AdminUserUpdate(BaseModel):
+    email: EmailStr | None = None
+    username: str | None = Field(default=None, min_length=3, max_length=100)
+    password: str | None = Field(default=None, min_length=8)
+    role: Literal["admin", "user"] | None = None
+    preferred_lang: str | None = None
+    is_active: bool | None = None
+
+
+class AdminSessionResponse(BaseModel):
+    id: UUID
+    user_id: UUID
+    username: str
+    created_at: datetime
+    expires_at: datetime
+    last_active_at: datetime
+    ip_address: str | None
+    user_agent: str | None
+    is_revoked: bool
+
+    model_config = {"from_attributes": True}
+
+
+# ---------------------------------------------------------------------------
+# Users endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/users", response_model=list[UserResponse])
+async def list_users(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    result = await db.execute(select(User).order_by(User.created_at))
+    return result.scalars().all()
+
+
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_user(
+    body: AdminUserCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    from app.services.auth_service import hash_password
+
+    existing = await db.execute(
+        select(User).where((User.email == body.email) | (User.username == body.username))
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Email o username già in uso")
+
+    user = User(
+        email=body.email,
+        username=body.username,
+        hashed_password=hash_password(body.password),
+        role=body.role,
+        preferred_lang=body.preferred_lang,
+        is_active=body.is_active,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: UUID,
+    body: AdminUserUpdate,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    from app.services.auth_service import hash_password
+
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    if body.email is not None:
+        user.email = body.email
+    if body.username is not None:
+        user.username = body.username
+    if body.password is not None:
+        user.hashed_password = hash_password(body.password)
+    if body.role is not None:
+        if user.id == admin.id and body.role != "admin":
+            raise HTTPException(status_code=400, detail="Non puoi rimuovere il tuo ruolo admin")
+        user.role = body.role
+    if body.preferred_lang is not None:
+        user.preferred_lang = body.preferred_lang
+    if body.is_active is not None:
+        if user.id == admin.id and not body.is_active:
+            raise HTTPException(status_code=400, detail="Non puoi disattivare te stesso")
+        user.is_active = body.is_active
+
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.delete("/users/{user_id}", status_code=204)
+async def delete_user(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="Non puoi eliminare te stesso")
+
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    await db.delete(user)
+    await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Sessions endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions", response_model=list[AdminSessionResponse])
+async def list_sessions(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    result = await db.execute(
+        select(Session, User.username)
+        .join(User, Session.user_id == User.id)
+        .order_by(Session.last_active_at.desc())
+    )
+    rows = result.all()
+    return [
+        AdminSessionResponse(
+            id=s.id,
+            user_id=s.user_id,
+            username=username,
+            created_at=s.created_at,
+            expires_at=s.expires_at,
+            last_active_at=s.last_active_at,
+            ip_address=s.ip_address,
+            user_agent=s.user_agent,
+            is_revoked=s.is_revoked,
+        )
+        for s, username in rows
+    ]
+
+
+@router.delete("/sessions/{session_id}", status_code=204)
+async def revoke_session(
+    session_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    session = await db.get(Session, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    session.is_revoked = True
+    await db.commit()
+
+
+class RevokeByUserBody(BaseModel):
+    user_id: UUID
+
+
+@router.delete("/sessions", status_code=204)
+async def revoke_all_user_sessions(
+    body: RevokeByUserBody,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    result = await db.execute(
+        select(Session).where(Session.user_id == body.user_id, Session.is_revoked == False)  # noqa: E712
+    )
+    for s in result.scalars().all():
+        s.is_revoked = True
+    await db.commit()
+
+
 def _to_response(config: LLMConfig) -> LLMConfigResponse:
     return LLMConfigResponse(
         id=config.id,
@@ -45,6 +241,7 @@ def _to_response(config: LLMConfig) -> LLMConfigResponse:
         is_default=config.is_default,
         is_active=config.is_active,
         priority=config.priority,
+        timeout_sec=config.timeout_sec,
         created_at=config.created_at,
     )
 
@@ -80,6 +277,7 @@ async def create_llm_config(
         is_default=body.is_default,
         is_active=body.is_active,
         priority=body.priority,
+        timeout_sec=body.timeout_sec,
     )
     if body.api_key:
         config.set_api_key(body.api_key, settings.encryption_key)

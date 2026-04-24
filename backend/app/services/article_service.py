@@ -432,7 +432,8 @@ async def get_frontpage_articles(
             continue
         slug = category.slug
         if slug not in columns_map:
-            cat_name = (category.name or {}).get(lang) or (category.name or {}).get("en") or slug
+            name_dict: dict = category.name or {}
+            cat_name = name_dict.get(lang) or name_dict.get("en") or slug
             columns_map[slug] = {"name": cat_name, "articles": []}
         if len(columns_map[slug]["articles"]) < 3:
             columns_map[slug]["articles"].append(_build_list_item(article, feed_title, state))

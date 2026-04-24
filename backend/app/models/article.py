@@ -4,10 +4,11 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import JSON, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.types import SafeJSON
 
 
 class FulltextStatus(str, Enum):
@@ -44,7 +45,7 @@ class Article(Base):
         String(20), default=FulltextStatus.PENDING.value
     )
     language: Mapped[str | None] = mapped_column(String(10))
-    tags: Mapped[list] = mapped_column(JSON, default=list)
+    tags: Mapped[list] = mapped_column(SafeJSON, default=list)
     tags_source: Mapped[str] = mapped_column(String(20), default=TagsSource.NONE.value)
     published_at: Mapped[datetime | None] = mapped_column(nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)

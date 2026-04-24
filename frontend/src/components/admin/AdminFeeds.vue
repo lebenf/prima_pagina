@@ -45,14 +45,19 @@
                 {{ t('admin.feeds.errorCount', { count: feed.error_count }) }}
               </span>
             </td>
-            <td>{{ feed.category_name || '—' }}</td>
+            <td>{{ categoryName(feed.category_id) || '—' }}</td>
             <td>{{ feed.fetch_interval_min }} min</td>
             <td>
               <span :class="['status-dot', statusClass(feed)]">
-                {{ feed.last_http_status || t('admin.feeds.neverFetched') }}
+                {{ feed.last_status || t('admin.feeds.neverFetched') }}
               </span>
             </td>
             <td class="actions">
+              <button
+                class="btn-icon"
+                :title="feed.is_subscribed ? 'Disiscriviti' : 'Iscriviti'"
+                @click="toggleSubscribe(feed)"
+              >{{ feed.is_subscribed ? '🔕' : '🔔' }}</button>
               <button class="btn-icon" @click="openEdit(feed)" title="Modifica">✏️</button>
               <button class="btn-icon" @click="refresh(feed)" :disabled="refreshing === feed.id" title="Refresh">🔄</button>
               <button class="btn-icon" @click="confirmDelete(feed)" title="Elimina">🗑️</button>
@@ -84,6 +89,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminApi, type AdminFeed, type AdminCategory } from '@/api/admin'
+import { feedsApi } from '@/api/feeds'
 import FeedFormModal from './FeedFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 
@@ -111,10 +117,19 @@ const filteredFeeds = computed(() => {
   return list
 })
 
+function categoryName(catId: string | null) {
+  if (!catId) return null
+  const cat = categories.value.find(c => c.id === catId)
+  if (!cat) return null
+  const name = cat.name
+  if (typeof name === 'object' && name !== null) return name.it || name.en || Object.values(name)[0] || null
+  return String(name)
+}
+
 function statusClass(feed: AdminFeed) {
-  if (!feed.last_http_status) return 'status-grey'
-  if (feed.last_http_status < 300) return 'status-green'
-  if (feed.last_http_status < 400) return 'status-orange'
+  if (!feed.last_status) return 'status-grey'
+  if (feed.last_status < 300) return 'status-green'
+  if (feed.last_status < 400) return 'status-orange'
   return 'status-red'
 }
 
@@ -126,7 +141,7 @@ async function load() {
       adminApi.feeds.list(),
       adminApi.categories.list(),
     ])
-    feeds.value = feedsRes.data
+    feeds.value = feedsRes.data.items
     categories.value = catsRes.data
   } catch {
     error.value = t('common.error')
@@ -143,6 +158,20 @@ function openCreate() {
 function openEdit(feed: AdminFeed) {
   editingFeed.value = feed
   showModal.value = true
+}
+
+async function toggleSubscribe(feed: AdminFeed) {
+  try {
+    if (feed.is_subscribed) {
+      await feedsApi.unsubscribe(feed.id)
+    } else {
+      await feedsApi.subscribe(feed.id)
+    }
+    const idx = feeds.value.findIndex(f => f.id === feed.id)
+    if (idx >= 0) feeds.value[idx] = { ...feeds.value[idx], is_subscribed: !feed.is_subscribed }
+  } catch {
+    error.value = t('common.error')
+  }
 }
 
 async function refresh(feed: AdminFeed) {

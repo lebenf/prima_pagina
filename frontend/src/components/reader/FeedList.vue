@@ -30,7 +30,7 @@
         <!-- Categorized groups -->
         <template v-for="(group, catId) in categorized" :key="catId">
           <p class="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 truncate">
-            {{ catId }}
+            {{ categoryNames[catId] || catId }}
           </p>
           <FeedItem
             v-for="feed in group"
@@ -46,13 +46,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFeedsStore } from '@/stores/feeds'
+import { adminApi } from '@/api/admin'
 import FeedItem from './FeedItem.vue'
 
 const { t } = useI18n()
 const feedsStore = useFeedsStore()
+
+const categoryNames = ref<Record<string, string>>({})
+
+onMounted(async () => {
+  try {
+    const res = await adminApi.categories.list()
+    const lang = navigator.language.split('-')[0]
+    for (const cat of res.data) {
+      const name = cat.name
+      const label = typeof name === 'object' && name !== null
+        ? (name[lang] || name.it || name.en || Object.values(name)[0] || cat.slug)
+        : String(name || cat.slug)
+      categoryNames.value[cat.id] = label
+    }
+  } catch {
+    // non-critical
+  }
+})
 
 const allFeedsItem = computed(() => ({
   id: '__all__',

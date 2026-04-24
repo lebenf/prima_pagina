@@ -16,6 +16,7 @@ class OllamaProvider(LLMProvider):
     def __init__(self, config):
         super().__init__(config)
         self.base_url = (config.endpoint_url or "http://localhost:11434").rstrip("/")
+        self.timeout_sec = getattr(config, "timeout_sec", 300)
 
     async def tag_article(
         self,
@@ -26,7 +27,7 @@ class OllamaProvider(LLMProvider):
     ) -> TaggingResult:
         prompt = self._build_tagging_prompt(title, excerpt, language, available_categories)
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=min(30.0, self.timeout_sec)) as client:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
                     json={
@@ -67,7 +68,7 @@ class OllamaProvider(LLMProvider):
             "Format: HTML with <h2> for sections, <article> per story."
         )
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=float(self.timeout_sec)) as client:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
                     json={
