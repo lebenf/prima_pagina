@@ -7,3 +7,16 @@ services:
     environment:
       APP_ENV: development
       LOG_LEVEL: DEBUG
+
+  frontend:
+    build:
+      context: ./frontend
+      target: build
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - BACKEND_URL=http://backend:8000

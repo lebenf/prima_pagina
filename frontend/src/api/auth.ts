@@ -19,6 +19,7 @@ export interface Session {
   ip_address: string | null
   user_agent: string | null
   is_current: boolean
+  is_revoked?: boolean
 }
 
 export const authApi = {

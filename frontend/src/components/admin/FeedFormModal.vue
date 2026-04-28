@@ -105,7 +105,7 @@ watch(() => props.feed, (f) => {
   if (f) {
     form.value = {
       url: f.url,
-      title: f.title,
+      title: f.title ?? '',
       category_id: f.category_id || '',
       fetch_interval_min: f.fetch_interval_min,
       source_weight: f.source_weight,

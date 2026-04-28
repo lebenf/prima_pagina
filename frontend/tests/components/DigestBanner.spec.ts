@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import DigestBanner from '@/components/frontpage/DigestBanner.vue'
+import type { Digest } from '@/api/digest'
 import en from '@/i18n/locales/en.json'
 
 const mockDigest = {
@@ -22,13 +23,13 @@ const mockDigest = {
   generation_error: null,
 }
 
-const failedDigest = {
-  ...mockDigest,
+const failedDigest: Digest = {
+  ...mockDigest as Digest,
   status: 'failed',
   generation_error: 'LLM timeout after 60s',
 }
 
-function makeWrapper(digest = mockDigest) {
+function makeWrapper(digest: Digest = mockDigest as Digest) {
   const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
   return mount(DigestBanner, {
     props: { digest },

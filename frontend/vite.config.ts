@@ -86,7 +86,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': { target: 'http://localhost:8000', changeOrigin: true },
+      '/api': {
+        target: process.env.BACKEND_URL || 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
   test: {

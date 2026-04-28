@@ -5,7 +5,15 @@ services:
     volumes:
       - prima_pagina_data:/app/data
     ports:
-      - "8000:8000"
+      - "8800:8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8880:80"
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:

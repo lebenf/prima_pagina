@@ -123,6 +123,7 @@ watch(() => props.user, (u) => {
       username: u.username,
       email: u.email,
       password: '',
+      confirm_password: '',
       role: u.role,
       preferred_lang: u.preferred_lang,
       is_active: u.is_active,
