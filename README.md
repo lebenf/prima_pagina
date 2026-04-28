@@ -138,4 +138,4 @@ npm run test
 
 ## License
 
-MIT
+AGPL v3

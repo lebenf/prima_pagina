@@ -131,29 +131,6 @@ APP_ENV=development
 LOG_LEVEL=INFO
 ```
 
-### Development task plan
-
-| Task | Title | Deps |
-|------|-------|------|
-| T01 | Monorepo setup, Docker, DB, config | — |
-| T02 | Session-based auth | T01 |
-| T03 | Feed management: global catalog + subscriptions | T02 |
-| T04 | Feed fetcher: scheduler, polling, parsing, dedup | T03 |
-| T05 | Article API: list, detail, user states, fulltext on-demand | T04 |
-| T06 | Frontend scaffold: Vue 3, routing, auth UI, i18n | T02 |
-| T07 | Frontend Reader: feed/article list, inline reading | T05, T06 |
-| T08 | LLM service: provider abstraction, Ollama + Claude, tagging | T05 |
-| T09 | Virtual Feed: CRUD, filters, RSS/Atom endpoint | T05, T08 |
-| T10 | Digest: LLM generation, scheduling, storage | T08, T09 |
-| T11 | Frontend Front Page: newspaper layout, digest | T07, T10 |
-| T12 | Plugin system: base interface + Telegram | T10 |
-| T13 | Admin panel: users, sessions, LLM config, plugins | T12 |
-| T14 | Polish: full i18n, PWA offline, docs | T13 |
-
-Detailed task specs are in `docs/tasks/T01.md` etc.
-
----
-
 ## Features.md
 
 `Features.md` at the repo root lists all implemented features. **Keep it updated**: whenever a new feature is added, an existing one is changed, or a bug fix alters visible behaviour, update `Features.md` accordingly — add, edit or remove entries as needed. Do not let it go stale.
