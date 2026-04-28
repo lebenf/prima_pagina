@@ -25,6 +25,7 @@
             <th>Titolo</th>
             <th>Categoria</th>
             <th>{{ t('admin.feeds.interval') }}</th>
+            <th>Fulltext</th>
             <th>Status</th>
             <th>Azioni</th>
           </tr>
@@ -47,6 +48,22 @@
             </td>
             <td>{{ categoryName(feed.category_id) || '—' }}</td>
             <td>{{ feed.fetch_interval_min }} min</td>
+            <td class="fulltext-cell">
+              <template v-if="feed.fulltext_enabled">
+                <span class="fulltext-mode">{{ feed.fulltext_mode }}</span>
+                <template v-if="feed.fulltext_mode !== 'trafilatura'">
+                  <span
+                    v-if="feed.extraction_script"
+                    :class="['script-badge', scriptBadgeClass(feed.extraction_script)]"
+                    @click="openScriptModal(feed)"
+                  >
+                    Script ({{ Math.round((feed.extraction_script.success_rate || 0) * 100) }}%)
+                  </span>
+                  <span v-else class="script-badge pending">In attesa</span>
+                </template>
+              </template>
+              <span v-else class="fulltext-disabled">—</span>
+            </td>
             <td>
               <span :class="['status-dot', statusClass(feed)]">
                 {{ feed.last_status || t('admin.feeds.neverFetched') }}
@@ -82,16 +99,23 @@
       @confirm="doDelete"
       @cancel="showConfirm = false"
     />
+
+    <ExtractionScriptModal
+      v-if="scriptModalFeed"
+      :feed="scriptModalFeed"
+      @close="scriptModalFeed = null"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { adminApi, type AdminFeed, type AdminCategory } from '@/api/admin'
+import { adminApi, type AdminFeed, type AdminCategory, type ExtractionScript } from '@/api/admin'
 import { feedsApi } from '@/api/feeds'
 import FeedFormModal from './FeedFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import ExtractionScriptModal from './ExtractionScriptModal.vue'
 
 const { t } = useI18n()
 
@@ -106,6 +130,7 @@ const editingFeed = ref<AdminFeed | null>(null)
 const showConfirm = ref(false)
 const deletingFeed = ref<AdminFeed | null>(null)
 const refreshing = ref<string | null>(null)
+const scriptModalFeed = ref<AdminFeed | null>(null)
 
 const filteredFeeds = computed(() => {
   let list = feeds.value
@@ -124,6 +149,18 @@ function categoryName(catId: string | null) {
   const name = cat.name
   if (typeof name === 'object' && name !== null) return name.it || name.en || Object.values(name)[0] || null
   return String(name)
+}
+
+function scriptBadgeClass(script: ExtractionScript): string {
+  if (!script.is_active) return 'error'
+  const rate = script.success_rate
+  if (rate >= 0.8) return 'ok'
+  if (rate >= 0.5) return 'warn'
+  return 'error'
+}
+
+function openScriptModal(feed: AdminFeed) {
+  scriptModalFeed.value = feed
 }
 
 function statusClass(feed: AdminFeed) {
@@ -265,4 +302,19 @@ onMounted(load)
 .btn-primary { padding: 0.5rem 1rem; border: none; border-radius: 4px; background: #1a1a1a; color: white; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
 .loading, .error-msg { padding: 2rem; text-align: center; color: #888; }
 .error-msg { color: #dc2626; }
+.fulltext-cell { white-space: nowrap; }
+.fulltext-mode { font-size: 0.75rem; color: #6b7280; margin-right: 0.375rem; }
+.fulltext-disabled { color: #d1d5db; }
+.script-badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.script-badge.ok { background: #d1fae5; color: #065f46; }
+.script-badge.warn { background: #fef3c7; color: #92400e; }
+.script-badge.error { background: #fee2e2; color: #dc2626; }
+.script-badge.pending { background: #f3f4f6; color: #6b7280; cursor: default; }
 </style>

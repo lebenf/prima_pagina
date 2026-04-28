@@ -109,6 +109,13 @@ export const useArticlesStore = defineStore('articles', () => {
     if (idx !== -1) articles.value[idx] = { ...articles.value[idx], ...updated }
   }
 
+  function selectArticle(article: Article) {
+    if (!articles.value.find(a => a.id === article.id)) {
+      articles.value = [article, ...articles.value]
+    }
+    selectedArticleId.value = article.id
+  }
+
   return {
     articles,
     selectedArticleId,
@@ -125,5 +132,6 @@ export const useArticlesStore = defineStore('articles', () => {
     toggleStar,
     setFilter,
     updateArticle,
+    selectArticle,
   }
 })

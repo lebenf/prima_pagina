@@ -15,19 +15,19 @@
       Prima Pagina
     </RouterLink>
 
-    <!-- Search (placeholder) -->
+    <!-- Search trigger -->
     <div class="flex-1 max-w-md mx-auto hidden md:block">
-      <div class="relative">
-        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button
+        class="w-full flex items-center gap-2 pl-3 pr-4 py-1.5 text-sm bg-primary-700 rounded-full text-gray-300 hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+        :aria-label="t('search.openSearch')"
+        @click="searchStore.open()"
+      >
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <input
-          type="search"
-          :placeholder="t('common.search')"
-          class="w-full pl-9 pr-4 py-1.5 text-sm bg-primary-700 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          disabled
-        />
-      </div>
+        <span class="flex-1 text-left">{{ t('search.search') }}</span>
+        <kbd class="text-xs bg-primary-600 px-1.5 py-0.5 rounded border border-primary-500">Ctrl K</kbd>
+      </button>
     </div>
 
     <div class="ml-auto flex items-center gap-2">
@@ -81,6 +81,7 @@ import { useI18n } from 'vue-i18n'
 import { onClickOutside } from '@vueuse/core'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { useSearchStore } from '@/stores/search'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const { t } = useI18n()
@@ -88,6 +89,7 @@ const auth = useAuthStore()
 const ui = useUiStore()
 const router = useRouter()
 
+const searchStore = useSearchStore()
 const userMenuOpen = ref(false)
 const userMenuRef = ref<HTMLElement | null>(null)
 

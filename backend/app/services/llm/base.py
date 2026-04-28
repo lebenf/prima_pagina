@@ -52,6 +52,11 @@ class LLMProvider(ABC):
     ) -> DigestResult: ...
 
     @abstractmethod
+    async def generate_text(self, prompt: str, max_tokens: int = 500) -> str:
+        """Generic text generation for custom prompts (e.g. CSS selector extraction)."""
+        ...
+
+    @abstractmethod
     async def health_check(self) -> bool: ...
 
     @staticmethod

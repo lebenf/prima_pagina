@@ -7,6 +7,11 @@ from uuid import UUID
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+SCORE_RAW_MIN = -5.0
+SCORE_RAW_MAX = +5.0
+NORM_MIN = 0.1
+NORM_MAX = 2.0
+
 
 def recency_score(published_at: datetime | None) -> float:
     """Exponential decay with 12-hour half-life. Returns value in (0, 1]."""
@@ -14,6 +19,22 @@ def recency_score(published_at: datetime | None) -> float:
         return 0.0
     age_hours = (datetime.utcnow() - published_at).total_seconds() / 3600
     return math.exp(-age_hours * math.log(2) / 12)
+
+
+def normalize_topic_score(raw_score: float) -> float:
+    """Normalise raw topic score [-5, +5] → [NORM_MIN, NORM_MAX]. Score 0 → 1.0."""
+    if raw_score >= 0:
+        return 1.0 + (raw_score / SCORE_RAW_MAX) * (NORM_MAX - 1.0)
+    else:
+        return 1.0 + (raw_score / abs(SCORE_RAW_MIN)) * (1.0 - NORM_MIN)
+
+
+def topic_weight(tags: list[str], topic_prefs: dict[str, float]) -> float:
+    """Mean of normalised topic scores for article tags. Tags without preference → 1.0."""
+    if not tags:
+        return 1.0
+    weights = [normalize_topic_score(topic_prefs.get(tag, 0.0)) for tag in tags]
+    return sum(weights) / len(weights)
 
 
 async def compute_category_affinity(
@@ -59,10 +80,9 @@ async def compute_category_affinity(
     for row in rows:
         if row.category_id is None:
             continue
-        # Normalise: equal distribution → 1.0; heavy reader → up to 2.0
         proportion = row.read_count / total
         expected = 1.0 / n_categories if n_categories else 1.0
-        raw = proportion / expected  # 1.0 at equal distribution
+        raw = proportion / expected
         affinity[row.category_id] = max(0.5, min(2.0, raw))
 
     return affinity
@@ -73,11 +93,12 @@ def score_article(
     published_at: datetime | None,
     source_weight: float = 1.0,
     category_affinity: float = 1.0,
+    topic_weight_factor: float = 1.0,
     is_read: bool = False,
 ) -> float:
     """
-    score = recency × source_weight × category_affinity × read_penalty
+    score = recency × source_weight × category_affinity × topic_weight_factor × read_penalty
     read_penalty is 0.1 for already-read articles.
     """
     read_penalty = 0.1 if is_read else 1.0
-    return recency_score(published_at) * source_weight * category_affinity * read_penalty
+    return recency_score(published_at) * source_weight * category_affinity * topic_weight_factor * read_penalty

@@ -11,7 +11,17 @@
     "username": "Usuario o correo electrónico",
     "password": "Contraseña",
     "loginError": "Credenciales no válidas",
-    "loggingIn": "Iniciando sesión..."
+    "loggingIn": "Iniciando sesión...",
+    "createAccount": "Crear cuenta",
+    "invitedBy": "Invitado por {name}",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "validatingInvite": "Validando invitación...",
+    "inviteInvalid": "Invitación inválida",
+    "inviteInvalidDesc": "Este enlace de invitación no es válido o ha expirado.",
+    "registering": "Creando cuenta...",
+    "register": "Registrarse",
+    "registerError": "Error al registrarse. Inténtalo de nuevo."
   },
   "article": {
     "readMore": "Leer más",
@@ -22,7 +32,14 @@
     "loadingFulltext": "Cargando artículo completo...",
     "fulltextFailed": "No se pudo cargar el artículo completo",
     "publishedAt": "Publicado el {date}",
-    "by": "por {author}"
+    "by": "por {author}",
+    "relatedTitle": "Leer también",
+    "voteUp": "Pulgar arriba",
+    "voteDown": "Pulgar abajo",
+    "openInReader": "Abrir en el Lector",
+    "openOriginal": "Abrir original",
+    "reading": "Leyendo artículo",
+    "voteEffect": "Los votos influyen en la Portada"
   },
   "feed": {
     "subscribe": "Suscribirse",
@@ -55,7 +72,20 @@
     "delete": "Eliminar",
     "confirm": "Confirmar",
     "search": "Buscar...",
-    "noResults": "Sin resultados"
+    "noResults": "Sin resultados",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!"
+  },
+  "search": {
+    "search": "Buscar",
+    "placeholder": "Buscar artículos...",
+    "openSearch": "Abrir búsqueda",
+    "resultCount": "{count} resultados",
+    "noResults": "Sin resultados para \"{query}\"",
+    "hint": "Escribe al menos 2 caracteres para buscar"
   },
   "reader": {
     "allFeeds": "Todos los feeds",
@@ -86,7 +116,15 @@
       "deleteConfirm": "¿Eliminar el usuario {username}? Esta acción no se puede deshacer.",
       "role": "Rol",
       "active": "Activo",
-      "cannotDeleteSelf": "No puedes eliminar tu propia cuenta"
+      "cannotDeleteSelf": "No puedes eliminar tu propia cuenta",
+      "confirmPassword": "Confirmar contraseña",
+      "invitations": "Invitaciones",
+      "createInvite": "Crear invitación",
+      "inviteEmailPlaceholder": "Correo (opcional)",
+      "generateLink": "Generar enlace",
+      "inviteStatusActive": "Activo",
+      "inviteStatusExpired": "Expirado",
+      "inviteStatusUsed": "Usado"
     },
     "sessions": {
       "title": "Sesiones activas",
@@ -157,7 +195,10 @@
     "period": "Período: {start} — {end}",
     "articles": "{count} artículos analizados",
     "provider": "Generado con {provider}",
-    "deleteConfirm": "¿Eliminar este resumen de prensa?"
+    "deleteConfirm": "¿Eliminar este resumen de prensa?",
+    "generationFailed": "Error al generar",
+    "retry": "Reintentar",
+    "generationFailedHint": "Revisa los registros del servidor y la configuración del proveedor LLM."
   },
   "virtualFeed": {
     "title": "Fuentes virtuales",

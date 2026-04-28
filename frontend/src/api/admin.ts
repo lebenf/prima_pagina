@@ -17,6 +17,7 @@ export interface UserCreate {
   email: string
   username: string
   password: string
+  confirm_password?: string
   role: 'admin' | 'user'
   preferred_lang: string
 }
@@ -44,6 +45,17 @@ export interface AdminSession {
 }
 
 // ── Feeds ───────────────────────────────────────────────────
+export interface ExtractionScript {
+  feed_id: string
+  selectors: Record<string, string>
+  generated_at: string
+  validated_at: string | null
+  is_active: boolean
+  success_rate: number
+  consecutive_failures: number
+  sample_url: string | null
+}
+
 export interface AdminFeed {
   id: string
   url: string
@@ -56,6 +68,21 @@ export interface AdminFeed {
   last_fetched_at: string | null
   last_status: number | null
   error_count: number
+  fulltext_enabled: boolean
+  fulltext_mode: string
+  extraction_script: ExtractionScript | null
+}
+
+// ── Invitations ─────────────────────────────────────────────
+export interface Invitation {
+  id: string
+  token: string
+  email: string | null
+  created_at: string
+  expires_at: string
+  used_at: string | null
+  is_valid: boolean
+  invite_url: string
 }
 
 export interface FeedCreate {
@@ -182,5 +209,17 @@ export const adminApi = {
     delete: (id: string) => client.delete(`/admin/plugins/${id}`),
     test: (id: string) =>
       client.post<{ ok: boolean; message: string; latency_ms: number }>(`/admin/plugins/${id}/test`),
+  },
+
+  invitations: {
+    list: () => client.get<Invitation[]>('/admin/invitations'),
+    create: (data: { email?: string; expires_days?: number }) =>
+      client.post<Invitation>('/admin/invitations', data),
+    revoke: (id: string) => client.delete(`/admin/invitations/${id}`),
+  },
+
+  extractionScript: {
+    get: (feedId: string) => client.get<ExtractionScript>(`/feeds/${feedId}/extraction-script`),
+    regenerate: (feedId: string) => client.post(`/feeds/${feedId}/extraction-script/regenerate`),
   },
 }

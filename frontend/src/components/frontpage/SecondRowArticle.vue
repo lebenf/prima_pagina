@@ -14,6 +14,12 @@
       <span v-if="article.feed_title">{{ article.feed_title }}</span>
       <span v-if="article.feed_title">·</span>
       <RelativeTime :date="article.published_at" />
+      <VoteButtons
+        :article-id="article.id"
+        :initial-vote="article.user_vote ?? 0"
+        :compact="true"
+        @vote-changed="(vote, id) => $emit('vote-changed', vote, id)"
+      />
     </footer>
   </article>
 </template>
@@ -21,10 +27,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RelativeTime from '@/components/common/RelativeTime.vue'
+import VoteButtons from '@/components/common/VoteButtons.vue'
 import type { Article } from '@/api/articles'
 
 const props = defineProps<{ article: Article }>()
-defineEmits<{ click: [] }>()
+defineEmits<{ click: []; 'vote-changed': [vote: number, articleId: string] }>()
 
 const plainExcerpt = computed(() => {
   if (!props.article.content_excerpt) return ''

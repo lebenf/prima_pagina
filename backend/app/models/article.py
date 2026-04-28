@@ -44,6 +44,7 @@ class Article(Base):
     fulltext_status: Mapped[str] = mapped_column(
         String(20), default=FulltextStatus.PENDING.value
     )
+    fulltext_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
     language: Mapped[str | None] = mapped_column(String(10))
     tags: Mapped[list] = mapped_column(SafeJSON, default=list)
     tags_source: Mapped[str] = mapped_column(String(20), default=TagsSource.NONE.value)
@@ -53,4 +54,7 @@ class Article(Base):
     feed: Mapped["Feed"] = relationship(back_populates="articles")  # noqa: F821
     user_states: Mapped[list["ArticleUserState"]] = relationship(  # noqa: F821
         back_populates="article", cascade="all, delete-orphan"
+    )
+    llm_data: Mapped["ArticleLLMData | None"] = relationship(  # noqa: F821
+        back_populates="article", uselist=False, cascade="all, delete-orphan"
     )

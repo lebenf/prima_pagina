@@ -31,7 +31,7 @@ frontend/.vite/
 .vscode/
 *.swp
 *.swo
-.tasks/
+.tasks/*
 
 # OS
 .DS_Store
@@ -39,3 +39,4 @@ Thumbs.db
 
 # Docker
 *.log
+/.tasks/*

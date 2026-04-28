@@ -94,6 +94,18 @@ class ClaudeProvider(LLMProvider):
             logger.error("claude: digest API error: %s", exc)
             raise
 
+    async def generate_text(self, prompt: str, max_tokens: int = 500) -> str:
+        try:
+            message = await self._client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return message.content[0].text
+        except Exception as exc:
+            logger.error("claude: generate_text error: %s", exc)
+            return ""
+
     async def health_check(self) -> bool:
         try:
             await self._client.messages.create(

@@ -63,6 +63,8 @@
       @confirm="doDelete"
       @cancel="showConfirm = false"
     />
+
+    <InvitationList />
   </div>
 </template>
 
@@ -73,6 +75,7 @@ import { useAuthStore } from '@/stores/auth'
 import { adminApi, type AdminUser } from '@/api/admin'
 import UserFormModal from './UserFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import InvitationList from './InvitationList.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()

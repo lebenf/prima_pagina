@@ -8,9 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
+from app.models.article import Article
+from app.models.article_user_state import ArticleUserState
 from app.models.user import User
 from app.schemas.article import (
     ArticleDetail,
+    ArticleListItem,
     ArticleListResponse,
     ArticleStateResponse,
     ArticleStateUpdate,
@@ -18,7 +21,9 @@ from app.schemas.article import (
     FulltextStatusResponse,
     MarkReadRequest,
 )
+from app.schemas.vote import VoteRequest, VoteResponse
 from app.services import article_service
+from app.services import vote_service
 
 router = APIRouter(prefix="/articles", tags=["articles"])
 
@@ -100,6 +105,77 @@ async def mark_feed_read(
         db, body.feed_id, current_user.id, body.before
     )
     return {"count": count}
+
+
+@router.post("/{article_id}/vote", response_model=VoteResponse)
+async def cast_vote(
+    article_id: UUID,
+    body: VoteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await vote_service.cast_vote(db, current_user.id, article_id, body.vote)
+
+
+@router.delete("/{article_id}/vote", response_model=VoteResponse)
+async def remove_vote(
+    article_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await vote_service.remove_vote(db, current_user.id, article_id)
+
+
+@router.get("/{article_id}/related", response_model=list[ArticleListItem])
+async def get_related_articles(
+    article_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from sqlalchemy import select, and_
+    from sqlalchemy.orm import selectinload
+    from app.models.article_llm_data import ArticleLLMData
+
+    article = await db.get(
+        Article, article_id,
+        options=[selectinload(Article.llm_data)]
+    )
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    llm_data: ArticleLLMData | None = article.llm_data
+    if not llm_data or not llm_data.related_article_ids:
+        return []
+
+    related_ids = [UUID(id_str) for id_str in llm_data.related_article_ids]
+
+    from app.models.feed import Feed
+    result = await db.execute(
+        select(Article, Feed.title.label("feed_title"), ArticleUserState)
+        .join(Feed, Article.feed_id == Feed.id)
+        .outerjoin(
+            ArticleUserState,
+            and_(
+                ArticleUserState.article_id == Article.id,
+                ArticleUserState.user_id == current_user.id,
+            ),
+        )
+        .where(Article.id.in_(related_ids))
+    )
+    rows = result.all()
+
+    articles_map = {
+        row.Article.id: (row.Article, row.feed_title, row.ArticleUserState)
+        for row in rows
+    }
+
+    from app.services.article_service import _build_list_item
+    ordered = [
+        _build_list_item(articles_map[rid][0], articles_map[rid][1], articles_map[rid][2])
+        for rid in related_ids
+        if rid in articles_map
+    ]
+    return ordered
 
 
 @router.get("/{article_id}/fulltext-status", response_model=FulltextStatusResponse)

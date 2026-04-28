@@ -24,7 +24,8 @@ from app.schemas.article import (
     FrontPageResponse,
 )
 from app.services import full_text as fulltext_svc
-from app.services.ranking import compute_category_affinity, score_article
+from app.services.ranking import compute_category_affinity, score_article, topic_weight
+from app.services.vote_service import get_topic_preferences, get_user_vote, load_user_votes_bulk
 
 
 # ---------------------------------------------------------------------------
@@ -36,6 +37,7 @@ def _build_list_item(
     article: Article,
     feed_title: str | None,
     state: ArticleUserState | None,
+    user_vote: int = 0,
 ) -> ArticleListItem:
     return ArticleListItem(
         id=article.id,
@@ -52,6 +54,7 @@ def _build_list_item(
         is_read=state.is_read if state else False,
         is_starred=state.is_starred if state else False,
         is_archived=state.is_archived if state else False,
+        user_vote=user_vote,
     )
 
 
@@ -199,8 +202,18 @@ async def get_articles(
     paged = base.offset(offset).limit(size)
 
     rows = (await db.execute(paged)).all()
+
+    # Bulk load votes for this page
+    article_ids = [row.Article.id for row in rows]
+    votes = await load_user_votes_bulk(db, user_id, article_ids)
+
     items = [
-        _build_list_item(row.Article, row.feed_title, row.ArticleUserState)
+        _build_list_item(
+            row.Article,
+            row.feed_title,
+            row.ArticleUserState,
+            user_vote=votes.get(row.Article.id, 0),
+        )
         for row in rows
     ]
 
@@ -253,6 +266,8 @@ async def get_article_detail(
         if not fulltext_svc.is_fetch_active(article_id):
             _schedule_fulltext(article_id)
 
+    user_vote = await get_user_vote(db, user_id, article_id)
+
     return ArticleDetail(
         id=article.id,
         feed_id=article.feed_id,
@@ -268,6 +283,7 @@ async def get_article_detail(
         is_read=state.is_read if state else False,
         is_starred=state.is_starred if state else False,
         is_archived=state.is_archived if state else False,
+        user_vote=user_vote,
         content_fulltext=article.content_fulltext,
         fulltext_status=article.fulltext_status,
         fulltext_loading=fulltext_loading,
@@ -315,7 +331,6 @@ async def mark_feed_read(
     before: datetime | None = None,
 ) -> int:
     """Bulk-mark all (or up-to-before) articles in a feed as read for a user."""
-    # Get all article IDs in this feed
     article_query = select(Article.id).where(Article.feed_id == feed_id)
     if before is not None:
         article_query = article_query.where(Article.published_at <= before)
@@ -351,6 +366,7 @@ async def get_frontpage_articles(
 ) -> FrontPageResponse:
     """
     Scoring-based front page from the last 48 hours of subscribed feeds.
+    topic_prefs and category_affinity are loaded once per request.
     """
     cutoff = datetime.utcnow() - timedelta(hours=48)
 
@@ -383,7 +399,11 @@ async def get_frontpage_articles(
             digest_id=None,
         )
 
+    # Preload once per request — avoids O(N) extra queries
     affinity = await compute_category_affinity(db, user_id)
+    topic_prefs = await get_topic_preferences(db, user_id)
+    article_ids = [row.Article.id for row in rows]
+    votes = await load_user_votes_bulk(db, user_id, article_ids)
 
     # Score each article
     scored: list[tuple[float, Article, str | None, ArticleUserState | None, Category | None]] = []
@@ -395,11 +415,13 @@ async def get_frontpage_articles(
 
         cat_id = feed.category_id
         cat_aff = affinity.get(cat_id, 1.0) if cat_id else 1.0
+        t_w = topic_weight(article.tags or [], topic_prefs)
 
         s = score_article(
             published_at=article.published_at,
             source_weight=feed.source_weight,
             category_affinity=cat_aff,
+            topic_weight_factor=t_w,
             is_read=state.is_read if state else False,
         )
         scored.append((s, article, feed.title, state, category))
@@ -408,24 +430,21 @@ async def get_frontpage_articles(
 
     def _to_item(s_tuple) -> ArticleListItem:
         _, article, feed_title, state, _ = s_tuple
-        return _build_list_item(article, feed_title, state)
+        return _build_list_item(article, feed_title, state, user_vote=votes.get(article.id, 0))
 
     hero: ArticleListItem | None = None
     second_row: list[ArticleListItem] = []
-    columns_map: dict[str, dict] = {}  # slug → {name, articles}
+    columns_map: dict[str, dict] = {}
 
-    # Hero: highest score overall
     if scored:
         hero = _to_item(scored[0])
         remaining = scored[1:]
     else:
         remaining = []
 
-    # Second row: next 3 highest-scoring (excluding hero)
     second_row = [_to_item(t) for t in remaining[:3]]
     remaining = remaining[3:]
 
-    # Columns: group by category, top 3 per category
     for s_tuple in remaining:
         _, article, feed_title, state, category = s_tuple
         if category is None:
@@ -436,7 +455,9 @@ async def get_frontpage_articles(
             cat_name = name_dict.get(lang) or name_dict.get("en") or slug
             columns_map[slug] = {"name": cat_name, "articles": []}
         if len(columns_map[slug]["articles"]) < 3:
-            columns_map[slug]["articles"].append(_build_list_item(article, feed_title, state))
+            columns_map[slug]["articles"].append(
+                _build_list_item(article, feed_title, state, user_vote=votes.get(article.id, 0))
+            )
 
     columns = [
         FrontPageColumn(

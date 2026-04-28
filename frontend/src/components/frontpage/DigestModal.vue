@@ -21,8 +21,18 @@
           >×</button>
         </div>
 
+        <!-- Error state -->
+        <div v-if="digest?.status === 'failed'" class="modal-body overflow-y-auto flex-1 p-6">
+          <div class="error-section">
+            <p class="error-heading">⚠️ {{ t('digest.generationFailed') }}</p>
+            <p v-if="digest.generation_error" class="error-detail">{{ digest.generation_error }}</p>
+            <p class="error-hint">{{ t('digest.generationFailedHint') }}</p>
+          </div>
+        </div>
+
         <!-- Content — server-sanitized HTML -->
         <div
+          v-else
           class="modal-body overflow-y-auto flex-1 p-6 prose prose-sm max-w-none"
           v-html="digest?.content_html || ''"
         />
@@ -81,5 +91,27 @@ onUnmounted(() => { document.body.style.overflow = '' })
   border-top: 1px solid #f3f4f6;
   padding-top: 1rem;
   margin-top: 1rem;
+}
+.error-section {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+}
+.error-heading {
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+.error-detail {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+  font-family: monospace;
+  word-break: break-all;
+}
+.error-hint {
+  font-size: 0.875rem;
+  color: #9ca3af;
 }
 </style>

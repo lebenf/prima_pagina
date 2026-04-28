@@ -91,3 +91,6 @@ async def _tag_article(article_id: UUID) -> None:
         logger.debug(
             "tagging: article %s tagged: %s", article_id, result.tags
         )
+
+    from app.services.related_articles import compute_related_articles
+    asyncio.create_task(compute_related_articles(article_id))

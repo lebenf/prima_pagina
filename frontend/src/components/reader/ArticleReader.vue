@@ -54,6 +54,11 @@
           class="prose prose-sm max-w-none text-gray-800 leading-relaxed article-content"
           v-html="content"
         />
+
+        <RelatedArticles
+          :article-id="article?.id ?? null"
+          @article-click="emit('select-article', $event)"
+        />
       </div>
     </template>
 
@@ -76,6 +81,7 @@ import { useArticlesStore } from '@/stores/articles'
 import { articlesApi } from '@/api/articles'
 import type { Article } from '@/api/articles'
 import ArticleToolbar from './ArticleToolbar.vue'
+import RelatedArticles from '@/components/common/RelatedArticles.vue'
 
 const props = defineProps<{
   article: Article | null
@@ -84,6 +90,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   back: []
+  'select-article': [article: Article]
 }>()
 
 const { t, locale } = useI18n()

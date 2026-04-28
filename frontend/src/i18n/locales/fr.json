@@ -11,7 +11,17 @@
     "username": "Nom d'utilisateur ou e-mail",
     "password": "Mot de passe",
     "loginError": "Identifiants invalides",
-    "loggingIn": "Connexion en cours..."
+    "loggingIn": "Connexion en cours...",
+    "createAccount": "Créer un compte",
+    "invitedBy": "Invité par {name}",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "validatingInvite": "Vérification de l'invitation...",
+    "inviteInvalid": "Invitation invalide",
+    "inviteInvalidDesc": "Ce lien d'invitation est invalide ou a expiré.",
+    "registering": "Création du compte...",
+    "register": "S'inscrire",
+    "registerError": "Erreur lors de l'inscription. Réessayez."
   },
   "article": {
     "readMore": "Lire la suite",
@@ -22,7 +32,14 @@
     "loadingFulltext": "Chargement de l'article complet...",
     "fulltextFailed": "Impossible de charger l'article complet",
     "publishedAt": "Publié le {date}",
-    "by": "par {author}"
+    "by": "par {author}",
+    "relatedTitle": "Lire aussi",
+    "voteUp": "Pouce en haut",
+    "voteDown": "Pouce en bas",
+    "openInReader": "Ouvrir dans le Lecteur",
+    "openOriginal": "Ouvrir l'original",
+    "reading": "Lecture de l'article",
+    "voteEffect": "Les votes influencent la Une"
   },
   "feed": {
     "subscribe": "S'abonner",
@@ -55,7 +72,20 @@
     "delete": "Supprimer",
     "confirm": "Confirmer",
     "search": "Rechercher...",
-    "noResults": "Aucun résultat"
+    "noResults": "Aucun résultat",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "close": "Fermer",
+    "copyLink": "Copier le lien",
+    "copied": "Copié !"
+  },
+  "search": {
+    "search": "Rechercher",
+    "placeholder": "Rechercher des articles...",
+    "openSearch": "Ouvrir la recherche",
+    "resultCount": "{count} résultats",
+    "noResults": "Aucun résultat pour \"{query}\"",
+    "hint": "Tapez au moins 2 caractères pour rechercher"
   },
   "reader": {
     "allFeeds": "Tous les flux",
@@ -86,7 +116,15 @@
       "deleteConfirm": "Supprimer l'utilisateur {username} ? Cette action est irréversible.",
       "role": "Rôle",
       "active": "Actif",
-      "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
+      "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+      "confirmPassword": "Confirmer le mot de passe",
+      "invitations": "Invitations",
+      "createInvite": "Créer une invitation",
+      "inviteEmailPlaceholder": "E-mail (optionnel)",
+      "generateLink": "Générer le lien",
+      "inviteStatusActive": "Actif",
+      "inviteStatusExpired": "Expiré",
+      "inviteStatusUsed": "Utilisé"
     },
     "sessions": {
       "title": "Sessions actives",
@@ -157,7 +195,10 @@
     "period": "Période : {start} — {end}",
     "articles": "{count} articles analysés",
     "provider": "Généré avec {provider}",
-    "deleteConfirm": "Supprimer cette revue de presse ?"
+    "deleteConfirm": "Supprimer cette revue de presse ?",
+    "generationFailed": "Échec de la génération",
+    "retry": "Réessayer",
+    "generationFailedHint": "Vérifiez les logs du serveur et la configuration du fournisseur LLM."
   },
   "virtualFeed": {
     "title": "Flux virtuels",

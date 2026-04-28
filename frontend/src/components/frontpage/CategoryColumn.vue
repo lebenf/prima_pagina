@@ -20,6 +20,12 @@
           <span v-if="article.feed_title">{{ article.feed_title }}</span>
           <span v-if="article.feed_title">·</span>
           <RelativeTime :date="article.published_at" />
+          <VoteButtons
+            :article-id="article.id"
+            :initial-vote="article.user_vote ?? 0"
+            :compact="true"
+            @vote-changed="(vote, id) => $emit('vote-changed', vote, id)"
+          />
         </div>
       </li>
     </ul>
@@ -29,6 +35,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RelativeTime from '@/components/common/RelativeTime.vue'
+import VoteButtons from '@/components/common/VoteButtons.vue'
 import type { Article } from '@/api/articles'
 
 interface Column {
@@ -38,7 +45,7 @@ interface Column {
 }
 
 const props = defineProps<{ column: Column }>()
-defineEmits<{ 'article-click': [article: Article] }>()
+defineEmits<{ 'article-click': [article: Article]; 'vote-changed': [vote: number, articleId: string] }>()
 
 const headerColor = computed(() => {
   const hue = props.column.category_slug

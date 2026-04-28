@@ -12,6 +12,7 @@ from app.database import get_db
 from app.models.feed import Feed
 from app.models.user import User
 from app.schemas.common import Page
+from app.schemas.extraction import ExtractionScriptResponse
 from app.schemas.feed import FeedCreate, FeedResponse, FeedUpdate, SubscriptionUpdate
 from app.services import feed_service
 
@@ -124,6 +125,64 @@ async def unsubscribe_feed(
     ok = await feed_service.unsubscribe(db, current_user.id, feed_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Not subscribed to this feed")
+
+
+@router.get("/feeds/{feed_id}/extraction-script", response_model=ExtractionScriptResponse)
+async def get_extraction_script(
+    feed_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.models.feed_extraction_script import FeedExtractionScript
+    script = await db.get(FeedExtractionScript, feed_id)
+    if script is None:
+        raise HTTPException(status_code=404, detail="No extraction script for this feed")
+    return script
+
+
+@router.post(
+    "/feeds/{feed_id}/extraction-script/regenerate",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def regenerate_extraction_script(
+    feed_id: uuid.UUID,
+    _: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    from sqlalchemy import select as sa_select
+    from app.models.article import Article
+    from app.models.feed_extraction_script import FeedExtractionScript
+
+    feed = await db.get(Feed, feed_id)
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Feed not found")
+
+    # Find a recent article URL to use as sample
+    row = await db.execute(
+        sa_select(Article.url)
+        .where(Article.feed_id == feed_id, Article.url.is_not(None))
+        .order_by(Article.published_at.desc())
+        .limit(1)
+    )
+    sample_url = row.scalar_one_or_none()
+    if sample_url is None:
+        raise HTTPException(
+            status_code=422,
+            detail="No article URL available for script generation",
+        )
+
+    # Invalidate current script
+    existing = await db.get(FeedExtractionScript, feed_id)
+    if existing:
+        existing.is_active = False
+        await db.commit()
+
+    async def _regen():
+        from app.services.full_text import _try_generate_script_for_feed
+        await _try_generate_script_for_feed(feed_id, sample_url)
+
+    asyncio.create_task(_regen())
+    return {"message": "Rigenerazione avviata"}
 
 
 @router.post("/feeds/{feed_id}/refresh", status_code=status.HTTP_202_ACCEPTED)

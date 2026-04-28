@@ -11,7 +11,17 @@
     "username": "Username or email",
     "password": "Password",
     "loginError": "Invalid credentials",
-    "loggingIn": "Logging in..."
+    "loggingIn": "Logging in...",
+    "createAccount": "Create account",
+    "invitedBy": "Invited by {name}",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "validatingInvite": "Validating invite...",
+    "inviteInvalid": "Invalid invite",
+    "inviteInvalidDesc": "This invite link is invalid or has expired.",
+    "registering": "Creating account...",
+    "register": "Register",
+    "registerError": "Registration failed. Please try again."
   },
   "article": {
     "readMore": "Read more",
@@ -22,7 +32,14 @@
     "loadingFulltext": "Loading full article...",
     "fulltextFailed": "Could not load full article",
     "publishedAt": "Published on {date}",
-    "by": "by {author}"
+    "by": "by {author}",
+    "relatedTitle": "Read also",
+    "voteUp": "Thumbs up",
+    "voteDown": "Thumbs down",
+    "openInReader": "Open in Reader",
+    "openOriginal": "Open original",
+    "reading": "Reading article",
+    "voteEffect": "Votes influence the Front Page"
   },
   "feed": {
     "subscribe": "Subscribe",
@@ -55,7 +72,20 @@
     "delete": "Delete",
     "confirm": "Confirm",
     "search": "Search...",
-    "noResults": "No results"
+    "noResults": "No results",
+    "prev": "Previous",
+    "next": "Next",
+    "close": "Close",
+    "copyLink": "Copy link",
+    "copied": "Copied!"
+  },
+  "search": {
+    "search": "Search",
+    "placeholder": "Search articles...",
+    "openSearch": "Open search",
+    "resultCount": "{count} results",
+    "noResults": "No results for \"{query}\"",
+    "hint": "Type at least 2 characters to search"
   },
   "reader": {
     "allFeeds": "All Feeds",
@@ -86,7 +116,15 @@
       "deleteConfirm": "Delete user {username}? This action cannot be undone.",
       "role": "Role",
       "active": "Active",
-      "cannotDeleteSelf": "You cannot delete your own account"
+      "cannotDeleteSelf": "You cannot delete your own account",
+      "confirmPassword": "Confirm password",
+      "invitations": "Invitations",
+      "createInvite": "Create invite",
+      "inviteEmailPlaceholder": "Email (optional)",
+      "generateLink": "Generate link",
+      "inviteStatusActive": "Active",
+      "inviteStatusExpired": "Expired",
+      "inviteStatusUsed": "Used"
     },
     "sessions": {
       "title": "Active Sessions",
@@ -157,7 +195,10 @@
     "period": "Period: {start} — {end}",
     "articles": "{count} articles analysed",
     "provider": "Generated with {provider}",
-    "deleteConfirm": "Delete this press digest?"
+    "deleteConfirm": "Delete this press digest?",
+    "generationFailed": "Generation failed",
+    "retry": "Retry",
+    "generationFailedHint": "Check the server logs and verify the LLM provider configuration."
   },
   "virtualFeed": {
     "title": "Virtual Feeds",

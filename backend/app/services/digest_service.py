@@ -62,38 +62,58 @@ async def generate_digest(
         raise DigestError("no_articles", "Nessun articolo con contenuto disponibile")
 
     period_label = _format_period_label(options.period_start, options.period_end, user.preferred_lang)
-    result = await provider.generate_digest(
-        articles=articles_data,
-        period_label=period_label,
-        output_language=user.preferred_lang,
-    )
-
-    content_html = _sanitize_digest_html(result.content_html)
-    content_text = result.content_text or _html_to_text(content_html)
 
     digest = Digest(
         user_id=user.id,
-        title=result.title,
+        title=None,
         period_start=options.period_start,
         period_end=options.period_end,
-        content_html=content_html,
-        content_text=content_text,
+        content_html=None,
+        content_text=None,
         virtual_feed_id=options.virtual_feed_id,
         llm_provider=provider.config.provider,
         llm_model=provider.config.model_name,
         article_count=len(articles_data),
+        status="ok",
+        generation_error=None,
     )
+
+    try:
+        result = await provider.generate_digest(
+            articles=articles_data,
+            period_label=period_label,
+            output_language=user.preferred_lang,
+        )
+        content_html = _sanitize_digest_html(result.content_html)
+        content_text = result.content_text or _html_to_text(content_html)
+        digest.title = result.title
+        digest.content_html = content_html
+        digest.content_text = content_text
+        digest.status = "ok"
+    except asyncio.TimeoutError:
+        timeout = getattr(provider.config, "timeout_sec", 300)
+        digest.status = "failed"
+        digest.generation_error = (
+            f"Timeout: la generazione ha superato il limite configurato ({timeout}s)"
+        )
+    except Exception as e:
+        digest.status = "failed"
+        digest.generation_error = f"Errore generazione: {str(e)[:200]}"
+
     db.add(digest)
     await db.commit()
     await db.refresh(digest)
 
-    logger.info(
-        "digest generated for user %s: %d articles, provider=%s",
-        user.id, len(articles_data), provider.config.provider,
-    )
-
-    # Dispatch digest-ready notification (fire and forget)
-    asyncio.create_task(_dispatch_digest_notification(digest, user))
+    if digest.status == "ok":
+        logger.info(
+            "digest generated for user %s: %d articles, provider=%s",
+            user.id, len(articles_data), provider.config.provider,
+        )
+        asyncio.create_task(_dispatch_digest_notification(digest, user))
+    else:
+        logger.warning(
+            "digest failed for user %s: %s", user.id, digest.generation_error
+        )
 
     return digest
 

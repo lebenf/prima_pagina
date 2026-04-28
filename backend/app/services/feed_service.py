@@ -107,10 +107,13 @@ async def _enrich_feed_background(db: AsyncSession, feed_id: UUID, url: str) -> 
 
 
 def _to_feed_response(feed: Feed, is_subscribed: bool, subscriber_count: int) -> FeedResponse:
-    resp = FeedResponse.model_validate(feed)
-    resp.is_subscribed = is_subscribed
-    resp.subscriber_count = subscriber_count
-    return resp
+    from sqlalchemy import inspect as sa_inspect
+    mapper = sa_inspect(type(feed))
+    d = {col.key: getattr(feed, col.key) for col in mapper.column_attrs}
+    d["is_subscribed"] = is_subscribed
+    d["subscriber_count"] = subscriber_count
+    d["extraction_script"] = None
+    return FeedResponse(**d)
 
 
 async def _compute_feed_extras(
@@ -174,6 +177,22 @@ async def get_feeds(
         _to_feed_response(feed, bool(is_sub), sub_count)
         for feed, is_sub, sub_count in rows
     ]
+
+    # Batch-load extraction scripts
+    feed_ids = [f.id for f in [row[0] for row in rows]]
+    if feed_ids:
+        from app.models.feed_extraction_script import FeedExtractionScript
+        from app.schemas.extraction import ExtractionScriptResponse
+        scripts_result = await db.execute(
+            select(FeedExtractionScript).where(FeedExtractionScript.feed_id.in_(feed_ids))
+        )
+        scripts_by_feed = {s.feed_id: s for s in scripts_result.scalars().all()}
+        for item in items:
+            if item.id in scripts_by_feed:
+                item.extraction_script = ExtractionScriptResponse.model_validate(
+                    scripts_by_feed[item.id]
+                )
+
     import math
     return Page(items=items, total=total, page=page, pages=max(1, math.ceil(total / size)), size=size)
 

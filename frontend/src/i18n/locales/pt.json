@@ -11,7 +11,17 @@
     "username": "Utilizador ou e-mail",
     "password": "Palavra-passe",
     "loginError": "Credenciais inválidas",
-    "loggingIn": "A entrar..."
+    "loggingIn": "A entrar...",
+    "createAccount": "Criar conta",
+    "invitedBy": "Convidado por {name}",
+    "confirmPassword": "Confirmar palavra-passe",
+    "passwordMismatch": "As palavras-passe não coincidem",
+    "validatingInvite": "A validar convite...",
+    "inviteInvalid": "Convite inválido",
+    "inviteInvalidDesc": "Este link de convite é inválido ou expirou.",
+    "registering": "A criar conta...",
+    "register": "Registar",
+    "registerError": "Erro ao registar. Tente novamente."
   },
   "article": {
     "readMore": "Ler mais",
@@ -22,7 +32,14 @@
     "loadingFulltext": "A carregar artigo completo...",
     "fulltextFailed": "Não foi possível carregar o artigo completo",
     "publishedAt": "Publicado em {date}",
-    "by": "por {author}"
+    "by": "por {author}",
+    "relatedTitle": "Leia também",
+    "voteUp": "Polegar para cima",
+    "voteDown": "Polegar para baixo",
+    "openInReader": "Abrir no Leitor",
+    "openOriginal": "Abrir original",
+    "reading": "A ler artigo",
+    "voteEffect": "Os votos influenciam a Primeira Página"
   },
   "feed": {
     "subscribe": "Subscrever",
@@ -55,7 +72,20 @@
     "delete": "Eliminar",
     "confirm": "Confirmar",
     "search": "Pesquisar...",
-    "noResults": "Sem resultados"
+    "noResults": "Sem resultados",
+    "prev": "Anterior",
+    "next": "Seguinte",
+    "close": "Fechar",
+    "copyLink": "Copiar link",
+    "copied": "Copiado!"
+  },
+  "search": {
+    "search": "Pesquisar",
+    "placeholder": "Pesquisar artigos...",
+    "openSearch": "Abrir pesquisa",
+    "resultCount": "{count} resultados",
+    "noResults": "Sem resultados para \"{query}\"",
+    "hint": "Escreva pelo menos 2 caracteres para pesquisar"
   },
   "reader": {
     "allFeeds": "Todos os feeds",
@@ -86,7 +116,15 @@
       "deleteConfirm": "Eliminar o utilizador {username}? Esta ação é irreversível.",
       "role": "Função",
       "active": "Ativo",
-      "cannotDeleteSelf": "Não pode eliminar a sua própria conta"
+      "cannotDeleteSelf": "Não pode eliminar a sua própria conta",
+      "confirmPassword": "Confirmar palavra-passe",
+      "invitations": "Convites",
+      "createInvite": "Criar convite",
+      "inviteEmailPlaceholder": "E-mail (opcional)",
+      "generateLink": "Gerar link",
+      "inviteStatusActive": "Ativo",
+      "inviteStatusExpired": "Expirado",
+      "inviteStatusUsed": "Usado"
     },
     "sessions": {
       "title": "Sessões ativas",
@@ -157,7 +195,10 @@
     "period": "Período: {start} — {end}",
     "articles": "{count} artigos analisados",
     "provider": "Gerado com {provider}",
-    "deleteConfirm": "Eliminar este resumo de imprensa?"
+    "deleteConfirm": "Eliminar este resumo de imprensa?",
+    "generationFailed": "Falha na geração",
+    "retry": "Tentar novamente",
+    "generationFailedHint": "Verifique os logs do servidor e a configuração do fornecedor LLM."
   },
   "virtualFeed": {
     "title": "Feeds virtuais",

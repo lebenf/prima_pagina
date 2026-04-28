@@ -13,6 +13,12 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/join',
+      name: 'register',
+      component: () => import('@/views/RegisterView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       component: () => import('@/components/layout/AppLayout.vue'),
       meta: { requiresAuth: true },

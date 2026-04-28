@@ -14,6 +14,13 @@
 
     <div class="flex-1" />
 
+    <VoteButtons
+      :article-id="article.id"
+      :initial-vote="article.user_vote ?? 0"
+      :compact="true"
+      @vote-changed="onVoteChanged"
+    />
+
     <button
       class="p-1.5 rounded transition-colors hover:bg-gray-100"
       :class="article.is_starred ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-500'"
@@ -52,6 +59,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useArticlesStore } from '@/stores/articles'
+import VoteButtons from '@/components/common/VoteButtons.vue'
 import type { Article } from '@/api/articles'
 
 const props = defineProps<{
@@ -68,5 +76,9 @@ const articlesStore = useArticlesStore()
 
 function openOriginal() {
   if (props.article.url) window.open(props.article.url, '_blank', 'noopener,noreferrer')
+}
+
+function onVoteChanged(vote: number, articleId: string) {
+  articlesStore.updateArticle({ id: articleId, user_vote: vote })
 }
 </script>

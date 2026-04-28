@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -41,8 +41,15 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str = Field(min_length=3, max_length=100)
     password: str = Field(min_length=8)
+    confirm_password: str = ""
     role: Literal["admin", "user"] = "user"
     preferred_lang: str = "it"
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "UserCreate":
+        if self.confirm_password and self.password != self.confirm_password:
+            raise ValueError("Le password non corrispondono")
+        return self
 
 
 class UserUpdate(BaseModel):

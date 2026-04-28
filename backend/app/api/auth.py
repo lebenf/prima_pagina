@@ -17,6 +17,10 @@ from app.schemas.auth import (
     UserResponse,
     UserUpdate,
 )
+from app.schemas.invitation import (
+    InvitationValidateResponse,
+    RegisterRequest,
+)
 from app.services.auth_service import (
     authenticate_user,
     create_session,
@@ -127,6 +131,86 @@ async def update_me(
     await db.commit()
     await db.refresh(current_user)
     return current_user
+
+
+@router.get("/auth/invitation/{token}", response_model=InvitationValidateResponse)
+async def validate_invitation(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    import uuid as _uuid
+    try:
+        t = _uuid.UUID(token)
+    except ValueError:
+        return InvitationValidateResponse(valid=False, email=None, expires_at=None)
+
+    from app.models.user_invitation import UserInvitation
+    result = await db.execute(
+        select(UserInvitation).where(UserInvitation.token == t)
+    )
+    invitation = result.scalar_one_or_none()
+    if not invitation:
+        return InvitationValidateResponse(valid=False, email=None, expires_at=None)
+    return InvitationValidateResponse(
+        valid=invitation.is_valid,
+        email=invitation.email,
+        expires_at=invitation.expires_at,
+    )
+
+
+@router.post("/auth/register/{token}", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register_with_invitation(
+    token: str,
+    data: RegisterRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    import uuid as _uuid
+    try:
+        t = _uuid.UUID(token)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invito non valido o scaduto")
+
+    from app.models.user_invitation import UserInvitation
+    result = await db.execute(
+        select(UserInvitation).where(UserInvitation.token == t)
+    )
+    invitation = result.scalar_one_or_none()
+    if not invitation or not invitation.is_valid:
+        raise HTTPException(status_code=400, detail="Invito non valido o scaduto")
+
+    existing = await db.execute(
+        select(User).where((User.username == data.username) | (User.email == data.email))
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Username o email già in uso")
+
+    user = User(
+        email=data.email,
+        username=data.username,
+        hashed_password=hash_password(data.password),
+        role="user",
+        is_active=True,
+    )
+    db.add(user)
+    await db.flush()
+
+    invitation.used_at = __import__("datetime").datetime.utcnow()
+    invitation.used_by = user.id
+    await db.commit()
+    await db.refresh(user)
+
+    session = await create_session(db, user, request)
+    response.set_cookie(
+        key="pp_session",
+        value=str(session.id),
+        httponly=True,
+        samesite="lax",
+        secure=settings.secure_cookies,
+        max_age=settings.session_max_age_days * 86400,
+    )
+    return user
 
 
 @router.post("/auth/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

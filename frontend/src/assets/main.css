@@ -7,3 +7,10 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
+
+mark {
+  background-color: #fef08a;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}

@@ -92,6 +92,24 @@ class OllamaProvider(LLMProvider):
             logger.error("ollama: generate_digest error: %s", exc)
             raise
 
+    async def generate_text(self, prompt: str, max_tokens: int = 500) -> str:
+        try:
+            async with httpx.AsyncClient(timeout=min(60.0, self.timeout_sec)) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/generate",
+                    json={
+                        "model": self.model,
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {"temperature": 0.1, "num_predict": max_tokens},
+                    },
+                )
+                response.raise_for_status()
+            return response.json().get("response", "")
+        except Exception as exc:
+            logger.error("ollama: generate_text error: %s", exc)
+            return ""
+
     async def health_check(self) -> bool:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:

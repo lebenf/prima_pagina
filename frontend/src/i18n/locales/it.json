@@ -11,7 +11,17 @@
     "username": "Nome utente o email",
     "password": "Password",
     "loginError": "Credenziali non valide",
-    "loggingIn": "Accesso in corso..."
+    "loggingIn": "Accesso in corso...",
+    "createAccount": "Crea account",
+    "invitedBy": "Invitato da {name}",
+    "confirmPassword": "Conferma password",
+    "passwordMismatch": "Le password non corrispondono",
+    "validatingInvite": "Verifica invito...",
+    "inviteInvalid": "Invito non valido",
+    "inviteInvalidDesc": "Il link di invito non è valido o è scaduto.",
+    "registering": "Registrazione in corso...",
+    "register": "Registrati",
+    "registerError": "Errore durante la registrazione. Riprova."
   },
   "article": {
     "readMore": "Leggi tutto",
@@ -22,7 +32,14 @@
     "loadingFulltext": "Caricamento articolo completo...",
     "fulltextFailed": "Impossibile caricare l'articolo completo",
     "publishedAt": "Pubblicato il {date}",
-    "by": "di {author}"
+    "by": "di {author}",
+    "relatedTitle": "Leggi anche",
+    "voteUp": "Pollice su",
+    "voteDown": "Pollice giù",
+    "openInReader": "Apri nel Reader",
+    "openOriginal": "Apri originale",
+    "reading": "Lettura articolo",
+    "voteEffect": "I voti influenzano la Prima Pagina"
   },
   "feed": {
     "subscribe": "Iscriviti",
@@ -55,7 +72,20 @@
     "delete": "Elimina",
     "confirm": "Conferma",
     "search": "Cerca...",
-    "noResults": "Nessun risultato"
+    "noResults": "Nessun risultato",
+    "prev": "Precedente",
+    "next": "Successivo",
+    "close": "Chiudi",
+    "copyLink": "Copia link",
+    "copied": "Copiato!"
+  },
+  "search": {
+    "search": "Cerca",
+    "placeholder": "Cerca tra gli articoli...",
+    "openSearch": "Apri ricerca",
+    "resultCount": "{count} risultati",
+    "noResults": "Nessun risultato per \"{query}\"",
+    "hint": "Digita almeno 2 caratteri per cercare"
   },
   "reader": {
     "allFeeds": "Tutti i feed",
@@ -86,7 +116,15 @@
       "deleteConfirm": "Eliminare l'utente {username}? Questa azione non è reversibile.",
       "role": "Ruolo",
       "active": "Attivo",
-      "cannotDeleteSelf": "Non puoi eliminare il tuo account"
+      "cannotDeleteSelf": "Non puoi eliminare il tuo account",
+      "confirmPassword": "Conferma password",
+      "invitations": "Inviti",
+      "createInvite": "Crea invito",
+      "inviteEmailPlaceholder": "Email (opzionale)",
+      "generateLink": "Genera link",
+      "inviteStatusActive": "Attivo",
+      "inviteStatusExpired": "Scaduto",
+      "inviteStatusUsed": "Usato"
     },
     "sessions": {
       "title": "Sessioni Attive",
@@ -157,7 +195,10 @@
     "period": "Periodo: {start} — {end}",
     "articles": "{count} articoli analizzati",
     "provider": "Generato con {provider}",
-    "deleteConfirm": "Eliminare questa rassegna stampa?"
+    "deleteConfirm": "Eliminare questa rassegna stampa?",
+    "generationFailed": "Generazione fallita",
+    "retry": "Riprova",
+    "generationFailedHint": "Controlla i log del server e verifica la configurazione del provider LLM."
   },
   "virtualFeed": {
     "title": "Feed Virtuali",

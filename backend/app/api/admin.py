@@ -7,7 +7,7 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,9 +46,16 @@ class AdminUserCreate(BaseModel):
     email: EmailStr
     username: str = Field(min_length=3, max_length=100)
     password: str = Field(min_length=8)
+    confirm_password: str = ""
     role: Literal["admin", "user"] = "user"
     preferred_lang: str = "it"
     is_active: bool = True
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "AdminUserCreate":
+        if self.confirm_password and self.password != self.confirm_password:
+            raise ValueError("Le password non corrispondono")
+        return self
 
 
 class AdminUserUpdate(BaseModel):
@@ -475,6 +482,83 @@ async def test_plugin(
     ok, message = await plugin.test_connection()
     latency_ms = int((time.monotonic() - start) * 1000)
     return PluginTestResponse(ok=ok, message=message, latency_ms=latency_ms)
+
+
+# ---------------------------------------------------------------------------
+# Invitation endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/invitations", response_model=list[dict])
+async def list_invitations(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+    settings=Depends(get_settings),
+):
+    from app.models.user_invitation import UserInvitation
+    from app.schemas.invitation import InvitationResponse
+    result = await db.execute(select(UserInvitation).order_by(UserInvitation.created_at.desc()))
+    invitations = result.scalars().all()
+    out = []
+    for inv in invitations:
+        r = InvitationResponse(
+            id=inv.id,
+            token=inv.token,
+            email=inv.email,
+            created_at=inv.created_at,
+            expires_at=inv.expires_at,
+            used_at=inv.used_at,
+            is_valid=inv.is_valid,
+            invite_url=f"{settings.app_base_url}/join?token={inv.token}",
+        )
+        out.append(r.model_dump())
+    return out
+
+
+@router.post("/invitations", response_model=dict, status_code=201)
+async def create_invitation(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    settings=Depends(get_settings),
+):
+    from datetime import timedelta
+    from app.models.user_invitation import UserInvitation
+    from app.schemas.invitation import InvitationCreate, InvitationResponse
+    data = InvitationCreate(**body)
+    expires_at = datetime.utcnow() + timedelta(days=data.expires_days)
+    invitation = UserInvitation(
+        email=data.email,
+        created_by=admin.id,
+        expires_at=expires_at,
+    )
+    db.add(invitation)
+    await db.commit()
+    await db.refresh(invitation)
+    r = InvitationResponse(
+        id=invitation.id,
+        token=invitation.token,
+        email=invitation.email,
+        created_at=invitation.created_at,
+        expires_at=invitation.expires_at,
+        used_at=invitation.used_at,
+        is_valid=invitation.is_valid,
+        invite_url=f"{settings.app_base_url}/join?token={invitation.token}",
+    )
+    return r.model_dump()
+
+
+@router.delete("/invitations/{invitation_id}", status_code=204)
+async def revoke_invitation(
+    invitation_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    from app.models.user_invitation import UserInvitation
+    invitation = await db.get(UserInvitation, invitation_id)
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    invitation.used_at = datetime.utcnow()
+    await db.commit()
 
 
 # ---------------------------------------------------------------------------

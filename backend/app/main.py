@@ -19,6 +19,7 @@ from app.api.auth import router as auth_router
 from app.api.categories import router as categories_router
 from app.api.digest import router as digest_router
 from app.api.feeds import router as feeds_router
+from app.api.search import router as search_router
 from app.api.virtual_feeds import router as virtual_feeds_router
 from app.config import get_settings
 from app.database import AsyncSessionLocal
@@ -81,6 +82,7 @@ app.include_router(articles_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(virtual_feeds_router, prefix="/api/v1")
 app.include_router(digest_router, prefix="/api/v1")
+app.include_router(search_router, prefix="/api/v1")
 
 
 @app.exception_handler(DigestError)

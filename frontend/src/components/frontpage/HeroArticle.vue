@@ -17,6 +17,12 @@
           <span v-if="article.feed_title" class="separator">·</span>
           <RelativeTime :date="article.published_at" />
           <div class="hero-actions ml-auto flex items-center gap-2">
+            <VoteButtons
+              :article-id="article.id"
+              :initial-vote="article.user_vote ?? 0"
+              :compact="true"
+              @vote-changed="(vote, id) => $emit('vote-changed', vote, id)"
+            />
             <button
               @click.stop="$emit('toggle-star')"
               class="action-btn text-lg hover:text-yellow-500 transition-colors"
@@ -40,10 +46,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RelativeTime from '@/components/common/RelativeTime.vue'
+import VoteButtons from '@/components/common/VoteButtons.vue'
 import type { Article } from '@/api/articles'
 
 const props = defineProps<{ article: Article }>()
-defineEmits<{ click: []; 'toggle-star': []; 'mark-read': [] }>()
+defineEmits<{ click: []; 'toggle-star': []; 'mark-read': []; 'vote-changed': [vote: number, articleId: string] }>()
 const { t } = useI18n()
 
 const plainExcerpt = computed(() => {

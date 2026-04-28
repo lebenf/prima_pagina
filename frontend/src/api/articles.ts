@@ -20,6 +20,7 @@ export interface Article {
   is_read: boolean
   is_starred: boolean
   is_archived: boolean
+  user_vote?: number
 }
 
 export interface ArticleListResponse {
@@ -62,4 +63,13 @@ export const articlesApi = {
 
   frontpage: (lang?: string) =>
     client.get('/articles/frontpage', { params: { lang } }),
+
+  related: (id: string) =>
+    client.get<Article[]>(`/articles/${id}/related`),
+
+  vote: (id: string, vote: 1 | -1) =>
+    client.post(`/articles/${id}/vote`, { vote }),
+
+  removeVote: (id: string) =>
+    client.delete(`/articles/${id}/vote`),
 }

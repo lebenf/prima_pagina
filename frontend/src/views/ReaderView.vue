@@ -26,6 +26,7 @@
         :article="articlesStore.selectedArticle"
         :show-back="mobile"
         @back="mobilePanel = 'list'"
+        @select-article="articlesStore.selectArticle($event)"
       />
     </main>
   </div>
@@ -34,13 +35,16 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
+import { useRoute } from 'vue-router'
 import { useFeedsStore } from '@/stores/feeds'
 import { useArticlesStore } from '@/stores/articles'
+import { articlesApi } from '@/api/articles'
 import { useReaderKeyboard } from '@/composables/useKeyboardNavigation'
 import FeedList from '@/components/reader/FeedList.vue'
 import ArticleList from '@/components/reader/ArticleList.vue'
 import ArticleReader from '@/components/reader/ArticleReader.vue'
 
+const route = useRoute()
 const feedsStore = useFeedsStore()
 const articlesStore = useArticlesStore()
 const { width } = useWindowSize()
@@ -55,6 +59,17 @@ useReaderKeyboard(articlesStore, () => {
 onMounted(async () => {
   await feedsStore.loadSubscribed()
   await articlesStore.loadForFeed(null)
+
+  const articleId = route.query.article as string | undefined
+  if (articleId) {
+    try {
+      const res = await articlesApi.get(articleId)
+      articlesStore.selectArticle(res.data)
+      if (mobile.value) mobilePanel.value = 'reader'
+    } catch {
+      // article not found or unauthorized — ignore
+    }
+  }
 })
 
 // When user selects a feed, reload articles

@@ -13,6 +13,8 @@ export interface Digest {
   llm_provider: string | null
   llm_model: string | null
   article_count: number
+  status: string
+  generation_error: string | null
   created_at: string
 }
 

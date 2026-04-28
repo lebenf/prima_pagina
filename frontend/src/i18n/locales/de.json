@@ -11,7 +11,17 @@
     "username": "Benutzername oder E-Mail",
     "password": "Passwort",
     "loginError": "Ungültige Anmeldedaten",
-    "loggingIn": "Anmeldung läuft..."
+    "loggingIn": "Anmeldung läuft...",
+    "createAccount": "Konto erstellen",
+    "invitedBy": "Eingeladen von {name}",
+    "confirmPassword": "Passwort bestätigen",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "validatingInvite": "Einladung wird geprüft...",
+    "inviteInvalid": "Ungültige Einladung",
+    "inviteInvalidDesc": "Dieser Einladungslink ist ungültig oder abgelaufen.",
+    "registering": "Konto wird erstellt...",
+    "register": "Registrieren",
+    "registerError": "Registrierung fehlgeschlagen. Erneut versuchen."
   },
   "article": {
     "readMore": "Weiterlesen",
@@ -22,7 +32,14 @@
     "loadingFulltext": "Vollständigen Artikel laden...",
     "fulltextFailed": "Vollständiger Artikel konnte nicht geladen werden",
     "publishedAt": "Veröffentlicht am {date}",
-    "by": "von {author}"
+    "by": "von {author}",
+    "relatedTitle": "Auch lesen",
+    "voteUp": "Daumen hoch",
+    "voteDown": "Daumen runter",
+    "openInReader": "Im Reader öffnen",
+    "openOriginal": "Original öffnen",
+    "reading": "Artikel lesen",
+    "voteEffect": "Stimmen beeinflussen die Titelseite"
   },
   "feed": {
     "subscribe": "Abonnieren",
@@ -55,7 +72,20 @@
     "delete": "Löschen",
     "confirm": "Bestätigen",
     "search": "Suchen...",
-    "noResults": "Keine Ergebnisse"
+    "noResults": "Keine Ergebnisse",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "close": "Schließen",
+    "copyLink": "Link kopieren",
+    "copied": "Kopiert!"
+  },
+  "search": {
+    "search": "Suchen",
+    "placeholder": "Artikel suchen...",
+    "openSearch": "Suche öffnen",
+    "resultCount": "{count} Ergebnisse",
+    "noResults": "Keine Ergebnisse für \"{query}\"",
+    "hint": "Mindestens 2 Zeichen eingeben"
   },
   "reader": {
     "allFeeds": "Alle Feeds",
@@ -86,7 +116,15 @@
       "deleteConfirm": "Benutzer {username} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       "role": "Rolle",
       "active": "Aktiv",
-      "cannotDeleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
+      "cannotDeleteSelf": "Sie können Ihr eigenes Konto nicht löschen",
+      "confirmPassword": "Passwort bestätigen",
+      "invitations": "Einladungen",
+      "createInvite": "Einladung erstellen",
+      "inviteEmailPlaceholder": "E-Mail (optional)",
+      "generateLink": "Link generieren",
+      "inviteStatusActive": "Aktiv",
+      "inviteStatusExpired": "Abgelaufen",
+      "inviteStatusUsed": "Verwendet"
     },
     "sessions": {
       "title": "Aktive Sitzungen",
@@ -157,7 +195,10 @@
     "period": "Zeitraum: {start} — {end}",
     "articles": "{count} analysierte Artikel",
     "provider": "Erstellt mit {provider}",
-    "deleteConfirm": "Diese Presseschau löschen?"
+    "deleteConfirm": "Diese Presseschau löschen?",
+    "generationFailed": "Erstellung fehlgeschlagen",
+    "retry": "Erneut versuchen",
+    "generationFailedHint": "Prüfen Sie die Server-Logs und die LLM-Anbieterkonfiguration."
   },
   "virtualFeed": {
     "title": "Virtuelle Feeds",

@@ -22,6 +22,7 @@ class ArticleListItem(BaseModel):
     is_read: bool = False
     is_starred: bool = False
     is_archived: bool = False
+    user_vote: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

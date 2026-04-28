@@ -8,6 +8,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Virtual environment
+
+**Single venv**: `backend/.venv` — managed by `uv` via `backend/pyproject.toml`.
+
+- PyCharm SDK "Python 3.12 (prima_pagina)" points to `backend/.venv/bin/python`.
+- All commands below assume `cd backend/` first, then use `.venv/bin/python` (or activate with `source .venv/bin/activate`).
+- To recreate: `cd backend && uv sync --group dev`.
+- Do **not** create a venv at the repo root — there is only one.
+
+---
+
 ## Development commands
 
 ### Backend (in `backend/`)

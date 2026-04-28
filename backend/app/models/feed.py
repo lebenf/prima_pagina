@@ -31,6 +31,8 @@ class Feed(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_global: Mapped[bool] = mapped_column(Boolean, default=True)
     source_weight: Mapped[float] = mapped_column(Float, default=1.0)
+    fulltext_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    fulltext_mode: Mapped[str] = mapped_column(String(20), default="trafilatura")
     # Set by error backoff to delay next fetch; None = use regular fetch_interval_min schedule
     next_fetch_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
@@ -47,4 +49,7 @@ class Feed(Base):
     )
     articles: Mapped[list["Article"]] = relationship(  # noqa: F821
         back_populates="feed", cascade="all, delete-orphan"
+    )
+    extraction_script: Mapped["FeedExtractionScript | None"] = relationship(  # noqa: F821
+        back_populates="feed", uselist=False, cascade="all, delete-orphan"
     )

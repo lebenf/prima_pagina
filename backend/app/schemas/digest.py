@@ -17,6 +17,8 @@ class DigestResponse(BaseModel):
     llm_provider: str | None
     llm_model: str | None
     article_count: int
+    status: str = "ok"
+    generation_error: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

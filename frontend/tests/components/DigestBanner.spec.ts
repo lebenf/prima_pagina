@@ -18,6 +18,14 @@ const mockDigest = {
   llm_model: 'claude-opus-4-7',
   article_count: 12,
   created_at: '2026-04-22T07:00:00',
+  status: 'ok',
+  generation_error: null,
+}
+
+const failedDigest = {
+  ...mockDigest,
+  status: 'failed',
+  generation_error: 'LLM timeout after 60s',
 }
 
 function makeWrapper(digest = mockDigest) {
@@ -56,5 +64,23 @@ describe('DigestBanner', () => {
     const readBtn = wrapper.findAll('button').find(b => b.text().includes('Read'))
     await readBtn!.trigger('click')
     expect(wrapper.emitted('open')).toBeTruthy()
+  })
+
+  it('shows error banner for failed digest', () => {
+    const wrapper = makeWrapper(failedDigest)
+    expect(wrapper.text()).toContain('Generation failed')
+    expect(wrapper.text()).toContain('LLM timeout after 60s')
+  })
+
+  it('shows error message text in failed digest', () => {
+    const wrapper = makeWrapper(failedDigest)
+    expect(wrapper.text()).toContain('LLM timeout after 60s')
+  })
+
+  it('emits retry on retry click for failed digest', async () => {
+    const wrapper = makeWrapper(failedDigest)
+    const retryBtn = wrapper.findAll('button').find(b => b.text().includes('Retry'))
+    await retryBtn!.trigger('click')
+    expect(wrapper.emitted('retry')).toBeTruthy()
   })
 })

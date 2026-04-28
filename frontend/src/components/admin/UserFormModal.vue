@@ -24,6 +24,17 @@
             <input v-model="form.password" type="password" :required="!isEdit" placeholder="••••••••" />
           </div>
 
+          <div v-if="!isEdit" class="form-group">
+            <label>{{ t('admin.users.confirmPassword') }}</label>
+            <input
+              v-model="form.confirm_password"
+              type="password"
+              required
+              placeholder="••••••••"
+            />
+            <span v-if="passwordMismatch" class="field-error">{{ t('auth.passwordMismatch') }}</span>
+          </div>
+
           <div class="form-group">
             <label>{{ t('admin.users.role') }}</label>
             <select v-model="form.role" :disabled="isSelf">
@@ -49,7 +60,7 @@
 
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
-            <button type="submit" class="btn-primary" :disabled="saving">
+            <button type="submit" class="btn-primary" :disabled="saving || passwordMismatch">
               {{ saving ? t('common.loading') : t('common.save') }}
             </button>
           </div>
@@ -60,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminApi, type AdminUser, type UserCreate, type UserUpdate } from '@/api/admin'
 
@@ -77,8 +88,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isEdit = computed(() => !!props.user)
 
-import { computed } from 'vue'
-
 const langs = [
   { code: 'it', label: 'Italiano' },
   { code: 'en', label: 'English' },
@@ -92,10 +101,17 @@ const defaultForm = () => ({
   username: '',
   email: '',
   password: '',
+  confirm_password: '',
   role: 'user' as 'admin' | 'user',
   preferred_lang: 'it',
   is_active: true,
 })
+
+const passwordMismatch = computed(() =>
+  !isEdit.value &&
+  form.value.confirm_password.length > 0 &&
+  form.value.password !== form.value.confirm_password
+)
 
 const form = ref(defaultForm())
 const saving = ref(false)
@@ -136,6 +152,7 @@ async function submit() {
         username: form.value.username,
         email: form.value.email,
         password: form.value.password,
+        confirm_password: form.value.confirm_password,
         role: form.value.role,
         preferred_lang: form.value.preferred_lang,
       }
@@ -232,6 +249,11 @@ async function submit() {
 .hint {
   font-size: 0.75rem;
   color: #888;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: #dc2626;
 }
 
 .form-error {

@@ -1,9 +1,13 @@
 # Copyright (C) 2026 Lorenzo Benfeati
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from __future__ import annotations
+
 from datetime import datetime
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
+
+from app.schemas.extraction import ExtractionScriptResponse
 
 
 class FeedCreate(BaseModel):
@@ -23,6 +27,8 @@ class FeedUpdate(BaseModel):
     fetch_interval_min: int | None = Field(default=None, ge=5, le=1440)
     source_weight: float | None = Field(default=None, ge=0.1, le=5.0)
     is_active: bool | None = None
+    fulltext_enabled: bool | None = None
+    fulltext_mode: str | None = None
 
 
 class FeedResponse(BaseModel):
@@ -40,6 +46,9 @@ class FeedResponse(BaseModel):
     error_count: int
     is_active: bool
     source_weight: float
+    fulltext_enabled: bool = False
+    fulltext_mode: str = "trafilatura"
+    extraction_script: ExtractionScriptResponse | None = None
     created_at: datetime
     is_subscribed: bool = False
     subscriber_count: int = 0
