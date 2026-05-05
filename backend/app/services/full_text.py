@@ -194,28 +194,48 @@ async def _try_generate_script_for_feed(feed_id: UUID, sample_url: str) -> None:
             logger.error("script generation failed for feed %s: %s", feed_id, exc)
 
 
+_BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+
+_BROWSER_HEADERS = {
+    "User-Agent": _BROWSER_UA,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+}
+
+
 def _download_html(url: str) -> str:
     """Synchronous HTML download; run in thread pool executor."""
     import httpx
 
     with httpx.Client(timeout=15.0, follow_redirects=True) as client:
-        r = client.get(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; PrimaPagina/0.2)"},
-        )
+        r = client.get(url, headers=_BROWSER_HEADERS)
         r.raise_for_status()
         return r.text
 
 
 def _extract_fulltext_sync(url: str) -> str | None:
     """Synchronous trafilatura extraction; run in a thread pool executor."""
+    import httpx
     import trafilatura
 
-    downloaded = trafilatura.fetch_url(url)
-    if not downloaded:
+    try:
+        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
+            r = client.get(url, headers=_BROWSER_HEADERS)
+            r.raise_for_status()
+            html = r.text
+    except Exception:
+        # Fall back to trafilatura's own fetcher
+        html = trafilatura.fetch_url(url)
+
+    if not html:
         return None
     return trafilatura.extract(
-        downloaded,
+        html,
         include_comments=False,
         include_tables=True,
         no_fallback=False,
