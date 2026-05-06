@@ -70,6 +70,7 @@ export interface AdminFeed {
   error_count: number
   fulltext_enabled: boolean
   fulltext_mode: string
+  fulltext_include_images: boolean
   extraction_script: ExtractionScript | null
 }
 
@@ -92,6 +93,9 @@ export interface FeedCreate {
   fetch_interval_min?: number
   source_weight?: number
   is_active?: boolean
+  fulltext_enabled?: boolean
+  fulltext_mode?: string
+  fulltext_include_images?: boolean
 }
 
 // ── Categories ──────────────────────────────────────────────

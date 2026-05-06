@@ -117,12 +117,13 @@ async def test_create_feed_duplicate_url(admin_client, sample_feed):
     assert resp.status_code == 409
 
 
-async def test_create_feed_as_user_forbidden(user_client):
+async def test_create_feed_as_user_allowed(user_client):
     resp = await user_client.post(
         "/api/v1/feeds",
-        json={"url": "https://blocked.example.com/rss.xml"},
+        json={"url": "https://user-created.example.com/rss.xml"},
     )
-    assert resp.status_code == 403
+    assert resp.status_code == 201
+    assert resp.json()["url"] == "https://user-created.example.com/rss.xml"
 
 
 # ---------------------------------------------------------------------------
@@ -148,12 +149,13 @@ async def test_feed_update_as_admin(admin_client, sample_feed):
     assert resp.json()["fetch_interval_min"] == 30
 
 
-async def test_feed_update_as_user_forbidden(user_client, sample_feed):
+async def test_feed_update_as_user_allowed(user_client, sample_feed):
     resp = await user_client.put(
         f"/api/v1/feeds/{sample_feed.id}",
-        json={"title": "Blocked"},
+        json={"title": "User Updated"},
     )
-    assert resp.status_code == 403
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "User Updated"
 
 
 async def test_delete_feed_as_admin(admin_client, sample_feed):
@@ -262,3 +264,109 @@ def test_validate_feed_url_allows_public_domains():
     # Should not raise
     validate_feed_url("https://feeds.bbci.co.uk/news/rss.xml")
     validate_feed_url("http://rss.example.com/feed.atom")
+
+
+# ---------------------------------------------------------------------------
+# fulltext_include_images
+# ---------------------------------------------------------------------------
+
+
+async def test_create_feed_with_fulltext_include_images(admin_client):
+    resp = await admin_client.post(
+        "/api/v1/feeds",
+        json={
+            "url": "https://comics.example.com/feed.xml",
+            "fulltext_enabled": True,
+            "fulltext_include_images": True,
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["fulltext_enabled"] is True
+    assert data["fulltext_include_images"] is True
+
+
+async def test_update_feed_fulltext_include_images(admin_client, sample_feed):
+    resp = await admin_client.put(
+        f"/api/v1/feeds/{sample_feed.id}",
+        json={"fulltext_enabled": True, "fulltext_include_images": True},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["fulltext_include_images"] is True
+
+
+async def test_fulltext_include_images_default_false(admin_client):
+    resp = await admin_client.post(
+        "/api/v1/feeds",
+        json={"url": "https://noimg.example.com/feed.xml"},
+    )
+    assert resp.status_code == 201
+    assert resp.json()["fulltext_include_images"] is False
+
+
+# ---------------------------------------------------------------------------
+# BLOCKED → PENDING reset on re-enable
+# ---------------------------------------------------------------------------
+
+
+async def test_reenable_fulltext_resets_blocked_articles(admin_client, db_session, sample_feed):
+    from app.models.article import Article, FulltextStatus
+    from uuid import uuid4
+
+    # Disable fulltext and create a blocked article
+    sample_feed.fulltext_enabled = False
+    await db_session.commit()
+
+    blocked = Article(
+        feed_id=sample_feed.id,
+        guid=str(uuid4()),
+        url="https://example.com/blocked",
+        fulltext_status=FulltextStatus.BLOCKED.value,
+        tags=[],
+        tags_source="none",
+    )
+    db_session.add(blocked)
+    await db_session.commit()
+    await db_session.refresh(blocked)
+
+    # Re-enable fulltext via API
+    resp = await admin_client.put(
+        f"/api/v1/feeds/{sample_feed.id}",
+        json={"fulltext_enabled": True},
+    )
+    assert resp.status_code == 200
+
+    await db_session.refresh(blocked)
+    assert blocked.fulltext_status == FulltextStatus.PENDING.value
+
+
+async def test_disable_fulltext_does_not_reset_pending_articles(admin_client, db_session, sample_feed):
+    """Disabling fulltext leaves existing PENDING articles untouched."""
+    from app.models.article import Article, FulltextStatus
+    from uuid import uuid4
+
+    sample_feed.fulltext_enabled = True
+    await db_session.commit()
+
+    pending = Article(
+        feed_id=sample_feed.id,
+        guid=str(uuid4()),
+        url="https://example.com/pending",
+        fulltext_status=FulltextStatus.PENDING.value,
+        tags=[],
+        tags_source="none",
+    )
+    db_session.add(pending)
+    await db_session.commit()
+    await db_session.refresh(pending)
+
+    resp = await admin_client.put(
+        f"/api/v1/feeds/{sample_feed.id}",
+        json={"fulltext_enabled": False},
+    )
+    assert resp.status_code == 200
+
+    await db_session.refresh(pending)
+    # PENDING articles are not touched when disabling; they'll be BLOCKED on next open
+    assert pending.fulltext_status == FulltextStatus.PENDING.value

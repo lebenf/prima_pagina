@@ -147,7 +147,10 @@
       "interval": "Intervalle (min)",
       "weight": "Poids source",
       "deleteConfirm": "Supprimer le flux {title} ?",
-      "neverFetched": "Jamais"
+      "neverFetched": "Jamais",
+      "fulltextEnabled": "Enrichissement du texte",
+      "fulltextMode": "Mode d'enrichissement",
+      "fulltextIncludeImages": "Inclure les images"
     },
     "categories": {
       "title": "Catégories",

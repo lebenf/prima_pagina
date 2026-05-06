@@ -12,6 +12,39 @@ logger = logging.getLogger(__name__)
 # In-memory set of article IDs currently being fetched — prevents duplicate tasks
 _active_fetches: set[UUID] = set()
 
+_ALLOWED_TAGS = [
+    "p", "br", "strong", "em", "b", "i", "u", "s",
+    "ul", "ol", "li",
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "blockquote", "pre", "code",
+    "a", "table", "thead", "tbody", "tr", "th", "td",
+    "figure", "figcaption", "div", "section", "article",
+]
+_ALLOWED_TAGS_WITH_IMAGES = _ALLOWED_TAGS + ["img"]
+
+_ALLOWED_ATTRS: dict = {
+    "a": ["href", "title", "rel"],
+    "td": ["colspan", "rowspan"],
+    "th": ["colspan", "rowspan"],
+}
+_ALLOWED_ATTRS_WITH_IMAGES: dict = {
+    **_ALLOWED_ATTRS,
+    "img": ["src", "alt", "width", "height", "loading"],
+}
+
+_BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+
+_BROWSER_HEADERS = {
+    "User-Agent": _BROWSER_UA,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+}
+
 
 def is_fetch_active(article_id: UUID) -> bool:
     return article_id in _active_fetches
@@ -62,42 +95,51 @@ async def process_fulltext(article_id: UUID, db) -> None:
         return
 
     feed = article.feed
-    mode = feed.fulltext_mode if feed else "trafilatura"
+
+    # Skip enrichment when disabled for this feed
+    if not feed or not feed.fulltext_enabled:
+        article.fulltext_status = FulltextStatus.BLOCKED.value
+        await db.commit()
+        return
+
+    mode = feed.fulltext_mode
+    include_images = feed.fulltext_include_images
 
     if mode == "trafilatura":
-        await _fetch_with_trafilatura(db, article)
+        await _fetch_with_trafilatura(db, article, include_images)
 
     elif mode == "script":
-        script = feed.extraction_script if feed else None
+        script = feed.extraction_script
         if script and script.is_active:
             await _fetch_with_script(db, article, feed, script)
         else:
-            await _fetch_with_trafilatura(db, article)
+            await _fetch_with_trafilatura(db, article, include_images)
 
     elif mode == "auto":
-        script = feed.extraction_script if feed else None
+        script = feed.extraction_script
         if script and script.is_active:
             success = await _fetch_with_script(db, article, feed, script)
             if not success:
-                await _fetch_with_trafilatura(db, article)
+                await _fetch_with_trafilatura(db, article, include_images)
         else:
-            await _fetch_with_trafilatura(db, article)
-            if feed and feed.fulltext_enabled and article.url:
+            await _fetch_with_trafilatura(db, article, include_images)
+            if article.url:
                 asyncio.create_task(
                     _try_generate_script_for_feed(feed.id, article.url)
                 )
     else:
-        # Unknown mode — fall back to trafilatura
-        await _fetch_with_trafilatura(db, article)
+        await _fetch_with_trafilatura(db, article, include_images)
 
 
-async def _fetch_with_trafilatura(db, article) -> None:
-    """Standard trafilatura extraction."""
+async def _fetch_with_trafilatura(db, article, include_images: bool = False) -> None:
+    """Standard trafilatura extraction outputting sanitized HTML."""
     from app.models.article import FulltextStatus
 
     try:
         loop = asyncio.get_event_loop()
-        fulltext = await loop.run_in_executor(None, _extract_fulltext_sync, article.url)
+        fulltext = await loop.run_in_executor(
+            None, _extract_fulltext_sync, article.url, include_images
+        )
 
         if fulltext and len(fulltext) > 200:
             article.content_fulltext = fulltext
@@ -194,20 +236,6 @@ async def _try_generate_script_for_feed(feed_id: UUID, sample_url: str) -> None:
             logger.error("script generation failed for feed %s: %s", feed_id, exc)
 
 
-_BROWSER_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
-
-_BROWSER_HEADERS = {
-    "User-Agent": _BROWSER_UA,
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-}
-
-
 def _download_html(url: str) -> str:
     """Synchronous HTML download; run in thread pool executor."""
     import httpx
@@ -218,7 +246,16 @@ def _download_html(url: str) -> str:
         return r.text
 
 
-def _extract_fulltext_sync(url: str) -> str | None:
+def _sanitize_html(html: str, include_images: bool) -> str:
+    """Strip disallowed tags/attributes; preserve safe formatting."""
+    import bleach
+
+    tags = _ALLOWED_TAGS_WITH_IMAGES if include_images else _ALLOWED_TAGS
+    attrs = _ALLOWED_ATTRS_WITH_IMAGES if include_images else _ALLOWED_ATTRS
+    return bleach.clean(html, tags=tags, attributes=attrs, strip=True)
+
+
+def _extract_fulltext_sync(url: str, include_images: bool = False) -> str | None:
     """Synchronous trafilatura extraction; run in a thread pool executor."""
     import httpx
     import trafilatura
@@ -234,10 +271,19 @@ def _extract_fulltext_sync(url: str) -> str | None:
 
     if not html:
         return None
-    return trafilatura.extract(
+
+    extracted = trafilatura.extract(
         html,
         include_comments=False,
         include_tables=True,
+        include_formatting=True,
         no_fallback=False,
         favor_recall=True,
+        output_format="html",
+        include_images=include_images,
     )
+
+    if not extracted:
+        return None
+
+    return _sanitize_html(extracted, include_images)

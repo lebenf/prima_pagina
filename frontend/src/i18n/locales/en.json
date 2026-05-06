@@ -147,7 +147,10 @@
       "interval": "Interval (min)",
       "weight": "Source weight",
       "deleteConfirm": "Delete feed {title}?",
-      "neverFetched": "Never"
+      "neverFetched": "Never",
+      "fulltextEnabled": "Text enrichment",
+      "fulltextMode": "Enrichment mode",
+      "fulltextIncludeImages": "Include images"
     },
     "categories": {
       "title": "Categories",

@@ -33,6 +33,7 @@ class Feed(Base):
     source_weight: Mapped[float] = mapped_column(Float, default=1.0)
     fulltext_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     fulltext_mode: Mapped[str] = mapped_column(String(20), default="trafilatura")
+    fulltext_include_images: Mapped[bool] = mapped_column(Boolean, default=False)
     # Set by error backoff to delay next fetch; None = use regular fetch_interval_min schedule
     next_fetch_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)

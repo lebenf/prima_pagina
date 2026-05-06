@@ -147,7 +147,10 @@
       "interval": "Intervalo (min)",
       "weight": "Peso de fuente",
       "deleteConfirm": "¿Eliminar la fuente {title}?",
-      "neverFetched": "Nunca"
+      "neverFetched": "Nunca",
+      "fulltextEnabled": "Enriquecimiento de texto",
+      "fulltextMode": "Modo de enriquecimiento",
+      "fulltextIncludeImages": "Incluir imágenes"
     },
     "categories": {
       "title": "Categorías",

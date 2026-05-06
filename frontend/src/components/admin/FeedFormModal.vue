@@ -54,6 +54,27 @@
             <input v-model="form.is_active" type="checkbox" />
           </div>
 
+          <div class="form-group form-group-inline">
+            <label>{{ t('admin.feeds.fulltextEnabled') }}</label>
+            <input v-model="form.fulltext_enabled" type="checkbox" />
+          </div>
+
+          <template v-if="form.fulltext_enabled">
+            <div class="form-group">
+              <label>{{ t('admin.feeds.fulltextMode') }}</label>
+              <select v-model="form.fulltext_mode">
+                <option value="trafilatura">trafilatura</option>
+                <option value="auto">auto</option>
+                <option value="script">script</option>
+              </select>
+            </div>
+
+            <div class="form-group form-group-inline">
+              <label>{{ t('admin.feeds.fulltextIncludeImages') }}</label>
+              <input v-model="form.fulltext_include_images" type="checkbox" />
+            </div>
+          </template>
+
           <div v-if="error" class="form-error">{{ error }}</div>
 
           <div class="modal-actions">
@@ -94,6 +115,9 @@ const defaultForm = () => ({
   fetch_interval_min: 60,
   source_weight: 1.0,
   is_active: true,
+  fulltext_enabled: false,
+  fulltext_mode: 'trafilatura',
+  fulltext_include_images: false,
 })
 
 const form = ref(defaultForm())
@@ -110,6 +134,9 @@ watch(() => props.feed, (f) => {
       fetch_interval_min: f.fetch_interval_min,
       source_weight: f.source_weight,
       is_active: f.is_active,
+      fulltext_enabled: f.fulltext_enabled,
+      fulltext_mode: f.fulltext_mode || 'trafilatura',
+      fulltext_include_images: f.fulltext_include_images,
     }
   } else {
     form.value = defaultForm()
@@ -142,6 +169,9 @@ async function submit() {
       fetch_interval_min: form.value.fetch_interval_min,
       source_weight: form.value.source_weight,
       is_active: form.value.is_active,
+      fulltext_enabled: form.value.fulltext_enabled,
+      fulltext_mode: form.value.fulltext_mode,
+      fulltext_include_images: form.value.fulltext_include_images,
     }
     if (isEdit.value && props.feed) {
       const res = await adminApi.feeds.update(props.feed.id, payload)

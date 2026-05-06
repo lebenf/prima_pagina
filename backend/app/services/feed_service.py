@@ -224,6 +224,9 @@ async def create_feed(db: AsyncSession, data: FeedCreate) -> FeedResponse:
         fetch_interval_min=data.fetch_interval_min,
         source_weight=data.source_weight,
         is_active=data.is_active,
+        fulltext_enabled=data.fulltext_enabled,
+        fulltext_mode=data.fulltext_mode,
+        fulltext_include_images=data.fulltext_include_images,
     )
     db.add(feed)
     await db.commit()
@@ -237,12 +240,26 @@ async def create_feed(db: AsyncSession, data: FeedCreate) -> FeedResponse:
 
 
 async def update_feed(db: AsyncSession, feed_id: UUID, data: FeedUpdate) -> FeedResponse | None:
+    from app.models.article import Article, FulltextStatus
+    from sqlalchemy import update as sa_update
+
     result = await db.execute(select(Feed).where(Feed.id == feed_id))
     feed = result.scalar_one_or_none()
     if feed is None:
         return None
+
+    was_fulltext_disabled = not feed.fulltext_enabled
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(feed, field, value)
+
+    # Reset blocked articles so they get enriched on next open
+    if was_fulltext_disabled and feed.fulltext_enabled:
+        await db.execute(
+            sa_update(Article)
+            .where(Article.feed_id == feed_id, Article.fulltext_status == FulltextStatus.BLOCKED.value)
+            .values(fulltext_status=FulltextStatus.PENDING.value)
+        )
+
     await db.commit()
     await db.refresh(feed)
     # subscriber_count is fine as 0 for admin update responses

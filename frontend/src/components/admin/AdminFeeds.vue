@@ -117,8 +117,8 @@ import FeedFormModal from './FeedFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import ExtractionScriptModal from './ExtractionScriptModal.vue'
 
-const props = defineProps<{ isAdmin?: boolean }>()
-const canDelete = computed(() => props.isAdmin !== false)
+const props = withDefaults(defineProps<{ isAdmin?: boolean }>(), { isAdmin: true })
+const canDelete = computed(() => props.isAdmin)
 
 const { t } = useI18n()
 
