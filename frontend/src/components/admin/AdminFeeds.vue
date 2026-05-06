@@ -51,7 +51,7 @@
             <td class="fulltext-cell">
               <template v-if="feed.fulltext_enabled">
                 <span class="fulltext-mode">{{ feed.fulltext_mode }}</span>
-                <template v-if="feed.fulltext_mode !== 'trafilatura'">
+                <template v-if="feed.fulltext_mode !== 'trafilatura' && canDelete">
                   <span
                     v-if="feed.extraction_script"
                     :class="['script-badge', scriptBadgeClass(feed.extraction_script)]"
@@ -76,8 +76,8 @@
                 @click="toggleSubscribe(feed)"
               >{{ feed.is_subscribed ? '🔕' : '🔔' }}</button>
               <button class="btn-icon" @click="openEdit(feed)" title="Modifica">✏️</button>
-              <button class="btn-icon" @click="refresh(feed)" :disabled="refreshing === feed.id" title="Refresh">🔄</button>
-              <button class="btn-icon" @click="confirmDelete(feed)" title="Elimina">🗑️</button>
+              <button v-if="canDelete" class="btn-icon" @click="refresh(feed)" :disabled="refreshing === feed.id" title="Refresh">🔄</button>
+              <button v-if="canDelete" class="btn-icon" @click="confirmDelete(feed)" title="Elimina">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -116,6 +116,9 @@ import { feedsApi } from '@/api/feeds'
 import FeedFormModal from './FeedFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import ExtractionScriptModal from './ExtractionScriptModal.vue'
+
+const props = defineProps<{ isAdmin?: boolean }>()
+const canDelete = computed(() => props.isAdmin !== false)
 
 const { t } = useI18n()
 

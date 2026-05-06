@@ -63,7 +63,7 @@ async def discover_feed(
 @router.post("/feeds", response_model=FeedResponse, status_code=status.HTTP_201_CREATED)
 async def create_feed(
     body: FeedCreate,
-    _: User = Depends(require_admin),
+    _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     return await feed_service.create_feed(db, body)
@@ -85,7 +85,7 @@ async def get_feed(
 async def update_feed(
     feed_id: uuid.UUID,
     body: FeedUpdate,
-    _: User = Depends(require_admin),
+    _: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     feed = await feed_service.update_feed(db, feed_id, body)

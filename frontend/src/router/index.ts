@@ -44,6 +44,11 @@ const router = createRouter({
           component: () => import('@/views/ArticleView.vue'),
         },
         {
+          path: 'feeds',
+          name: 'feeds',
+          component: () => import('@/views/FeedsView.vue'),
+        },
+        {
           path: 'settings',
           name: 'settings',
           component: () => import('@/views/SettingsView.vue'),

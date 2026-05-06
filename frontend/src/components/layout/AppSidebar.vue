@@ -45,6 +45,20 @@
       </RouterLink>
 
       <RouterLink
+        v-if="!auth.isAdmin"
+        :to="{ name: 'feeds' }"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-primary-700 transition-colors"
+        :class="{ 'justify-center': ui.sidebarCollapsed }"
+        active-class="bg-primary-600"
+      >
+        <!-- Antenna icon -->
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+        </svg>
+        <span v-if="!ui.sidebarCollapsed" class="text-sm">{{ t('nav.feeds') }}</span>
+      </RouterLink>
+
+      <RouterLink
         v-if="auth.isAdmin"
         :to="{ name: 'admin' }"
         class="flex items-center gap-3 px-4 py-3 hover:bg-primary-700 transition-colors"

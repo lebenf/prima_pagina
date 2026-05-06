@@ -4,7 +4,8 @@
     "reader": "Lecteur",
     "settings": "Paramètres",
     "admin": "Administration",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "feeds": "Flux"
   },
   "auth": {
     "login": "Se connecter",
