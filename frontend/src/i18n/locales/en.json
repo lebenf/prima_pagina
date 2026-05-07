@@ -40,7 +40,11 @@
     "openInReader": "Open in Reader",
     "openOriginal": "Open original",
     "reading": "Reading article",
-    "voteEffect": "Votes influence the Front Page"
+    "voteEffect": "Votes influence the Front Page",
+    "fulltextFetchedAt": "Enriched on {date}",
+    "fulltextReport": "Report issue",
+    "fulltextReportPlaceholder": "Describe what is wrong (optional)...",
+    "fulltextReportSent": "Report sent"
   },
   "feed": {
     "subscribe": "Subscribe",

@@ -42,7 +42,7 @@ _BROWSER_HEADERS = {
     "User-Agent": _BROWSER_UA,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Encoding": "gzip, deflate",
 }
 
 
@@ -50,7 +50,7 @@ def is_fetch_active(article_id: UUID) -> bool:
     return article_id in _active_fetches
 
 
-async def fetch_fulltext(article_id: UUID) -> None:
+async def fetch_fulltext(article_id: UUID, feedback: str | None = None) -> None:
     """
     Background task entry point: creates its own DB session.
     Guards against duplicate concurrent fetches via _active_fetches.
@@ -62,12 +62,12 @@ async def fetch_fulltext(article_id: UUID) -> None:
         from app.database import AsyncSessionLocal
 
         async with AsyncSessionLocal() as db:
-            await process_fulltext(article_id, db)
+            await process_fulltext(article_id, db, feedback=feedback)
     finally:
         _active_fetches.discard(article_id)
 
 
-async def process_fulltext(article_id: UUID, db) -> None:
+async def process_fulltext(article_id: UUID, db, feedback: str | None = None) -> None:
     """
     Core fulltext extraction logic. Dispatches based on feed.fulltext_mode.
     Accepts an existing session so it can be called directly in tests.
@@ -114,6 +114,10 @@ async def process_fulltext(article_id: UUID, db) -> None:
             await _fetch_with_script(db, article, feed, script)
         else:
             await _fetch_with_trafilatura(db, article, include_images)
+            if article.url and feedback:
+                asyncio.create_task(
+                    _try_generate_script_for_feed(feed.id, article.url, feedback=feedback)
+                )
 
     elif mode == "auto":
         script = feed.extraction_script
@@ -125,7 +129,7 @@ async def process_fulltext(article_id: UUID, db) -> None:
             await _fetch_with_trafilatura(db, article, include_images)
             if article.url:
                 asyncio.create_task(
-                    _try_generate_script_for_feed(feed.id, article.url)
+                    _try_generate_script_for_feed(feed.id, article.url, feedback=feedback)
                 )
     else:
         await _fetch_with_trafilatura(db, article, include_images)
@@ -215,7 +219,9 @@ async def _fetch_with_script(db, article, feed, script) -> bool:
         return False
 
 
-async def _try_generate_script_for_feed(feed_id: UUID, sample_url: str) -> None:
+async def _try_generate_script_for_feed(
+    feed_id: UUID, sample_url: str, feedback: str | None = None
+) -> None:
     """Background task: download page and generate extraction script."""
     from app.database import AsyncSessionLocal
     from app.models.feed import Feed
@@ -231,7 +237,7 @@ async def _try_generate_script_for_feed(feed_id: UUID, sample_url: str) -> None:
                 loop.run_in_executor(None, _download_html, sample_url),
                 timeout=20.0,
             )
-            await generate_extraction_script(feed, sample_url, html, db)
+            await generate_extraction_script(feed, sample_url, html, db, feedback=feedback)
         except Exception as exc:
             logger.error("script generation failed for feed %s: %s", feed_id, exc)
 

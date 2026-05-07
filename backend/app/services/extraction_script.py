@@ -117,12 +117,16 @@ def apply_extraction_script(
 # ---------------------------------------------------------------------------
 
 
-def _build_selector_prompt(html: str, url: str, site_url: str | None) -> str:
+def _build_selector_prompt(html: str, url: str, site_url: str | None, feedback: str | None = None) -> str:
+    feedback_section = (
+        f"\nFeedback utente sul precedente tentativo di estrazione:\n{feedback}\nTieni conto di questo problema nella scelta dei selector.\n"
+        if feedback else ""
+    )
     return f"""Analizza questo HTML e trova i CSS selector per estrarre il contenuto dell'articolo.
 
 URL della pagina: {url}
 Sito: {site_url or 'sconosciuto'}
-
+{feedback_section}
 HTML (troncato):
 {html}
 
@@ -178,6 +182,7 @@ async def generate_extraction_script(
     sample_url: str,
     html_content: str,
     db: AsyncSession,
+    feedback: str | None = None,
 ):
     """
     Ask LLM for CSS selectors, validate, save.
@@ -192,7 +197,7 @@ async def generate_extraction_script(
         return None
 
     truncated_html = _truncate_html_for_prompt(html_content, max_chars=40_000)
-    prompt = _build_selector_prompt(truncated_html, sample_url, feed.site_url)
+    prompt = _build_selector_prompt(truncated_html, sample_url, feed.site_url, feedback)
 
     try:
         raw_response = await provider.generate_text(prompt, max_tokens=500)

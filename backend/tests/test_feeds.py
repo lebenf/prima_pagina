@@ -341,6 +341,36 @@ async def test_reenable_fulltext_resets_blocked_articles(admin_client, db_sessio
     assert blocked.fulltext_status == FulltextStatus.PENDING.value
 
 
+async def test_reenable_fulltext_resets_failed_articles(admin_client, db_session, sample_feed):
+    """FAILED articles are also reset to PENDING when re-enabling fulltext."""
+    from app.models.article import Article, FulltextStatus
+    from uuid import uuid4
+
+    sample_feed.fulltext_enabled = False
+    await db_session.commit()
+
+    failed = Article(
+        feed_id=sample_feed.id,
+        guid=str(uuid4()),
+        url="https://example.com/failed",
+        fulltext_status=FulltextStatus.FAILED.value,
+        tags=[],
+        tags_source="none",
+    )
+    db_session.add(failed)
+    await db_session.commit()
+    await db_session.refresh(failed)
+
+    resp = await admin_client.put(
+        f"/api/v1/feeds/{sample_feed.id}",
+        json={"fulltext_enabled": True},
+    )
+    assert resp.status_code == 200
+
+    await db_session.refresh(failed)
+    assert failed.fulltext_status == FulltextStatus.PENDING.value
+
+
 async def test_disable_fulltext_does_not_reset_pending_articles(admin_client, db_session, sample_feed):
     """Disabling fulltext leaves existing PENDING articles untouched."""
     from app.models.article import Article, FulltextStatus
@@ -370,3 +400,34 @@ async def test_disable_fulltext_does_not_reset_pending_articles(admin_client, db
     await db_session.refresh(pending)
     # PENDING articles are not touched when disabling; they'll be BLOCKED on next open
     assert pending.fulltext_status == FulltextStatus.PENDING.value
+
+
+async def test_resave_enabled_feed_retries_failed_articles(admin_client, db_session, sample_feed):
+    """Re-saving a feed that's already enabled with fulltext_enabled=True resets FAILED articles."""
+    from app.models.article import Article, FulltextStatus
+    from uuid import uuid4
+
+    sample_feed.fulltext_enabled = True
+    await db_session.commit()
+
+    failed = Article(
+        feed_id=sample_feed.id,
+        guid=str(uuid4()),
+        url="https://example.com/failed-retry",
+        fulltext_status=FulltextStatus.FAILED.value,
+        tags=[],
+        tags_source="none",
+    )
+    db_session.add(failed)
+    await db_session.commit()
+    await db_session.refresh(failed)
+
+    # Re-save with fulltext still enabled — acts as a retry trigger
+    resp = await admin_client.put(
+        f"/api/v1/feeds/{sample_feed.id}",
+        json={"fulltext_enabled": True},
+    )
+    assert resp.status_code == 200
+
+    await db_session.refresh(failed)
+    assert failed.fulltext_status == FulltextStatus.PENDING.value

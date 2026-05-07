@@ -17,6 +17,7 @@ const mockArticle = {
   content_fulltext: null,
   fulltext_status: 'pending' as const,
   fulltext_loading: false,
+  fulltext_fetched_at: null,
   language: 'en',
   tags: ['politics', 'world'],
   published_at: new Date('2026-04-22T10:00:00Z').toISOString(),

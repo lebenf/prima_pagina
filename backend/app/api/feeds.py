@@ -85,10 +85,10 @@ async def get_feed(
 async def update_feed(
     feed_id: uuid.UUID,
     body: FeedUpdate,
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    feed = await feed_service.update_feed(db, feed_id, body)
+    feed = await feed_service.update_feed(db, feed_id, body, current_user.id)
     if feed is None:
         raise HTTPException(status_code=404, detail="Feed not found")
     return feed

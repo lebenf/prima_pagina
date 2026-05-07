@@ -1,5 +1,6 @@
 # Copyright (C) 2026 Lorenzo Benfeati
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
@@ -18,6 +19,7 @@ from app.schemas.article import (
     ArticleStateResponse,
     ArticleStateUpdate,
     FrontPageResponse,
+    FulltextReportRequest,
     FulltextStatusResponse,
     MarkReadRequest,
 )
@@ -176,6 +178,50 @@ async def get_related_articles(
         if rid in articles_map
     ]
     return ordered
+
+
+@router.post("/{article_id}/fulltext-report")
+async def report_fulltext(
+    article_id: UUID,
+    body: FulltextReportRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    import logging
+    from app.models.article import Article, FulltextStatus
+    from app.models.feed import Feed
+    from app.services.full_text import fetch_fulltext, is_fetch_active
+
+    logger = logging.getLogger(__name__)
+
+    article = await db.get(Article, article_id)
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    logger.info(
+        "fulltext_report: article=%s user=%s message=%r",
+        article_id, current_user.id, body.message,
+    )
+
+    # Reset article for re-extraction
+    article.fulltext_status = FulltextStatus.PENDING.value
+    article.content_fulltext = None
+
+    # Invalidate extraction script so LLM regenerates it with feedback
+    feed = await db.get(Feed, article.feed_id)
+    if feed and feed.fulltext_mode in ("auto", "script"):
+        from app.models.feed_extraction_script import FeedExtractionScript
+        script = await db.get(FeedExtractionScript, feed.id)
+        if script and script.is_active:
+            script.is_active = False
+
+    await db.commit()
+
+    # Trigger immediate background re-extraction with feedback as LLM hint
+    if not is_fetch_active(article_id):
+        asyncio.create_task(fetch_fulltext(article_id, feedback=body.message or None))
+
+    return {"detail": "reported", "fulltext_loading": True}
 
 
 @router.get("/{article_id}/fulltext-status", response_model=FulltextStatusResponse)

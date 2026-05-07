@@ -13,6 +13,7 @@ export interface Article {
   content_fulltext: string | null
   fulltext_status: 'pending' | 'ok' | 'failed' | 'blocked'
   fulltext_loading: boolean
+  fulltext_fetched_at: string | null
   language: string | null
   tags: string[]
   published_at: string | null
@@ -72,4 +73,7 @@ export const articlesApi = {
 
   removeVote: (id: string) =>
     client.delete(`/articles/${id}/vote`),
+
+  reportFulltext: (id: string, message?: string) =>
+    client.post(`/articles/${id}/fulltext-report`, { message }),
 }

@@ -31,6 +31,7 @@ class ArticleDetail(ArticleListItem):
     content_fulltext: str | None
     fulltext_status: str  # "pending" | "ok" | "failed" | "blocked"
     fulltext_loading: bool  # True while background fetch is in progress
+    fulltext_fetched_at: datetime | None
     tags_source: str
 
 
@@ -76,6 +77,10 @@ class ArticleListResponse(BaseModel):
 class FulltextStatusResponse(BaseModel):
     status: str
     fulltext_available: bool
+
+
+class FulltextReportRequest(BaseModel):
+    message: str | None = None
 
 
 class MarkReadRequest(BaseModel):

@@ -22,7 +22,7 @@ import { articlesApi } from '@/api/articles'
 import { digestApi } from '@/api/digest'
 
 const mockFrontPageData = {
-  hero: { id: 'a1', title: 'Hero Article', feed_title: 'Feed A', tags: ['politics'], published_at: new Date().toISOString(), fetched_at: new Date().toISOString(), feed_id: 'f1', url: null, author: null, content_excerpt: null, content_fulltext: null, fulltext_status: 'pending' as const, fulltext_loading: false, language: null, is_read: false, is_starred: false, is_archived: false },
+  hero: { id: 'a1', title: 'Hero Article', feed_title: 'Feed A', tags: ['politics'], published_at: new Date().toISOString(), fetched_at: new Date().toISOString(), feed_id: 'f1', url: null, author: null, content_excerpt: null, content_fulltext: null, fulltext_status: 'pending' as const, fulltext_loading: false, fulltext_fetched_at: null, language: null, is_read: false, is_starred: false, is_archived: false },
   second_row: [],
   columns: [],
   digest_available: false,

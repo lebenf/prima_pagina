@@ -18,9 +18,17 @@
           {{ article.title }}
         </h1>
 
-        <p v-if="article.author" class="text-sm text-gray-500 mb-3">
-          {{ t('article.by', { author: article.author }) }}
-        </p>
+        <div class="flex items-center gap-2 mb-3">
+          <p v-if="article.author" class="text-sm text-gray-500">
+            {{ t('article.by', { author: article.author }) }}
+          </p>
+          <FulltextBadge
+            v-if="article.fulltext_status === 'ok' && article.fulltext_fetched_at"
+            :article-id="article.id"
+            :fetched-at="article.fulltext_fetched_at"
+            @reported="onFulltextReported"
+          />
+        </div>
 
         <div v-if="article.tags.length > 0" class="flex flex-wrap gap-1.5 mb-4">
           <span
@@ -68,6 +76,7 @@ import { useI18n } from 'vue-i18n'
 import { articlesApi, type Article } from '@/api/articles'
 import { useArticlesStore } from '@/stores/articles'
 import ArticleToolbar from '@/components/reader/ArticleToolbar.vue'
+import FulltextBadge from '@/components/common/FulltextBadge.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -86,8 +95,11 @@ const content = computed(() =>
   article.value?.content_fulltext ?? article.value?.content_excerpt ?? ''
 )
 
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(dateStr))
+function formatDate(dateStr: string, withTime = false): string {
+  const opts = withTime
+    ? { dateStyle: 'long' as const, timeStyle: 'short' as const }
+    : { dateStyle: 'long' as const }
+  return new Intl.DateTimeFormat(locale.value, opts).format(new Date(dateStr))
 }
 
 function stopPolling() {
@@ -125,6 +137,13 @@ async function load(id: string) {
   } finally {
     isLoading.value = false
   }
+}
+
+function onFulltextReported() {
+  if (!article.value) return
+  article.value.content_fulltext = null
+  article.value.fulltext_loading = true
+  startPolling(article.value.id)
 }
 
 onMounted(() => {

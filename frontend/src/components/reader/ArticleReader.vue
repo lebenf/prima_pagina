@@ -20,10 +20,18 @@
           {{ article.title }}
         </h1>
 
-        <!-- Author -->
-        <p v-if="article.author" class="text-sm text-gray-500 mb-3">
-          {{ t('article.by', { author: article.author }) }}
-        </p>
+        <!-- Author + fulltext badge -->
+        <div class="flex items-center gap-2 mb-3">
+          <p v-if="article.author" class="text-sm text-gray-500">
+            {{ t('article.by', { author: article.author }) }}
+          </p>
+          <FulltextBadge
+            v-if="article.fulltext_status === 'ok' && article.fulltext_fetched_at"
+            :article-id="article.id"
+            :fetched-at="article.fulltext_fetched_at"
+            @reported="onFulltextReported"
+          />
+        </div>
 
         <!-- Tags -->
         <div v-if="article.tags.length > 0" class="flex flex-wrap gap-1.5 mb-4">
@@ -82,6 +90,7 @@ import { articlesApi } from '@/api/articles'
 import type { Article } from '@/api/articles'
 import ArticleToolbar from './ArticleToolbar.vue'
 import RelatedArticles from '@/components/common/RelatedArticles.vue'
+import FulltextBadge from '@/components/common/FulltextBadge.vue'
 
 const props = defineProps<{
   article: Article | null
@@ -106,8 +115,11 @@ const content = computed(() => {
   return props.article.content_fulltext ?? props.article.content_excerpt ?? ''
 })
 
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(dateStr))
+function formatDate(dateStr: string, withTime = false): string {
+  const opts = withTime
+    ? { dateStyle: 'long' as const, timeStyle: 'short' as const }
+    : { dateStyle: 'long' as const }
+  return new Intl.DateTimeFormat(locale.value, opts).format(new Date(dateStr))
 }
 
 function stopPolling() {
@@ -160,6 +172,12 @@ watch(
 watch(content, () => {
   // content updated; link target enforcement done via CSS in article-content class
 })
+
+function onFulltextReported() {
+  if (!props.article) return
+  articlesStore.updateArticle({ id: props.article.id, content_fulltext: null, fulltext_loading: true })
+  startPolling(props.article.id)
+}
 
 onUnmounted(stopPolling)
 </script>

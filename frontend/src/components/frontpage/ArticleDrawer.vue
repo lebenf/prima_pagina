@@ -57,6 +57,12 @@
               <RelativeTime v-if="article.published_at" :date="article.published_at" />
               <span v-if="article.author" class="separator">·</span>
               <span v-if="article.author" class="author">{{ article.author }}</span>
+              <FulltextBadge
+                v-if="article.fulltext_status === 'ok' && article.fulltext_fetched_at"
+                :article-id="article.id"
+                :fetched-at="article.fulltext_fetched_at"
+                @reported="onFulltextReported"
+              />
             </div>
 
             <h1 class="article-title">{{ article.title }}</h1>
@@ -98,6 +104,7 @@ import VoteButtons from '@/components/common/VoteButtons.vue'
 import RelatedArticles from '@/components/common/RelatedArticles.vue'
 import RelativeTime from '@/components/common/RelativeTime.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import FulltextBadge from '@/components/common/FulltextBadge.vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{ articleId: string | null }>()
@@ -121,6 +128,10 @@ const articleBody = computed(() => {
   if (!article.value) return ''
   return article.value.content_fulltext || article.value.content_excerpt || ''
 })
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleString()
+}
 
 // Lock body scroll when drawer is open
 watch(isOpen, (open) => {
@@ -196,6 +207,13 @@ function startFulltextPolling(id: string) {
 function onVoteChanged(vote: number, articleId: string) {
   if (article.value?.id === articleId) article.value.user_vote = vote
   emit('vote-changed', vote, articleId)
+}
+
+function onFulltextReported() {
+  if (!article.value) return
+  article.value.content_fulltext = null
+  article.value.fulltext_loading = true
+  if (article.value.id) startFulltextPolling(article.value.id)
 }
 
 async function toggleStar() {

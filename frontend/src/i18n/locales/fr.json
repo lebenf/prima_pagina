@@ -40,7 +40,11 @@
     "openInReader": "Ouvrir dans le Lecteur",
     "openOriginal": "Ouvrir l'original",
     "reading": "Lecture de l'article",
-    "voteEffect": "Les votes influencent la Une"
+    "voteEffect": "Les votes influencent la Une",
+    "fulltextFetchedAt": "Enrichi le {date}",
+    "fulltextReport": "Signaler un problème",
+    "fulltextReportPlaceholder": "Décrivez ce qui ne va pas (optionnel)...",
+    "fulltextReportSent": "Signalement envoyé"
   },
   "feed": {
     "subscribe": "S'abonner",

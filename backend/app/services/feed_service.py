@@ -239,7 +239,9 @@ async def create_feed(db: AsyncSession, data: FeedCreate) -> FeedResponse:
     return _to_feed_response(feed, False, 0)
 
 
-async def update_feed(db: AsyncSession, feed_id: UUID, data: FeedUpdate) -> FeedResponse | None:
+async def update_feed(
+    db: AsyncSession, feed_id: UUID, data: FeedUpdate, user_id: UUID | None = None
+) -> FeedResponse | None:
     from app.models.article import Article, FulltextStatus
     from sqlalchemy import update as sa_update
 
@@ -248,23 +250,32 @@ async def update_feed(db: AsyncSession, feed_id: UUID, data: FeedUpdate) -> Feed
     if feed is None:
         return None
 
-    was_fulltext_disabled = not feed.fulltext_enabled
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(feed, field, value)
 
-    # Reset blocked articles so they get enriched on next open
-    if was_fulltext_disabled and feed.fulltext_enabled:
+    # If fulltext_enabled=True is explicitly in the update, reset blocked/failed articles
+    # so they get enriched on next open (also acts as a retry for previously-failed fetches)
+    if "fulltext_enabled" in data.model_fields_set and feed.fulltext_enabled:
         await db.execute(
             sa_update(Article)
-            .where(Article.feed_id == feed_id, Article.fulltext_status == FulltextStatus.BLOCKED.value)
+            .where(
+                Article.feed_id == feed_id,
+                Article.fulltext_status.in_([
+                    FulltextStatus.BLOCKED.value,
+                    FulltextStatus.FAILED.value,
+                ]),
+            )
             .values(fulltext_status=FulltextStatus.PENDING.value)
         )
 
     await db.commit()
     await db.refresh(feed)
-    # subscriber_count is fine as 0 for admin update responses
-    sub_count = (await db.scalar(select(func.count()).where(UserFeed.feed_id == feed_id))) or 0
-    return _to_feed_response(feed, False, sub_count)
+    if user_id:
+        is_sub, sub_count = await _compute_feed_extras(db, feed_id, user_id)
+    else:
+        is_sub = False
+        sub_count = (await db.scalar(select(func.count()).where(UserFeed.feed_id == feed_id))) or 0
+    return _to_feed_response(feed, is_sub, sub_count)
 
 
 async def delete_feed(db: AsyncSession, feed_id: UUID) -> bool:

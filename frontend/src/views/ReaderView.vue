@@ -81,15 +81,21 @@ watch(
   },
 )
 
-// When user selects an article: switch to reader panel on mobile + mark-as-read after 3s
+// When user selects an article: fetch full detail (triggers fulltext), switch panel, mark-as-read
 let markReadTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(
   () => articlesStore.selectedArticleId,
-  (id) => {
+  async (id) => {
     if (markReadTimer) { clearTimeout(markReadTimer); markReadTimer = null }
     if (id) {
       if (mobile.value) mobilePanel.value = 'reader'
+      // Fetch ArticleDetail so the backend triggers fulltext enrichment
+      // and the reader gets fulltext_loading/fulltext_status
+      try {
+        const res = await articlesApi.get(id)
+        articlesStore.updateArticle(res.data)
+      } catch { /* ignore */ }
       markReadTimer = setTimeout(() => {
         articlesStore.markRead(id)
         markReadTimer = null

@@ -287,6 +287,7 @@ async def get_article_detail(
         content_fulltext=article.content_fulltext,
         fulltext_status=article.fulltext_status,
         fulltext_loading=fulltext_loading,
+        fulltext_fetched_at=article.fulltext_fetched_at,
         tags_source=article.tags_source,
     )
 

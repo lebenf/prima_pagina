@@ -40,7 +40,11 @@
     "openInReader": "Im Reader öffnen",
     "openOriginal": "Original öffnen",
     "reading": "Artikel lesen",
-    "voteEffect": "Stimmen beeinflussen die Titelseite"
+    "voteEffect": "Stimmen beeinflussen die Titelseite",
+    "fulltextFetchedAt": "Angereichert am {date}",
+    "fulltextReport": "Problem melden",
+    "fulltextReportPlaceholder": "Beschreiben Sie das Problem (optional)...",
+    "fulltextReportSent": "Meldung gesendet"
   },
   "feed": {
     "subscribe": "Abonnieren",

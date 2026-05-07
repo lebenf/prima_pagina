@@ -40,7 +40,11 @@
     "openInReader": "Apri nel Reader",
     "openOriginal": "Apri originale",
     "reading": "Lettura articolo",
-    "voteEffect": "I voti influenzano la Prima Pagina"
+    "voteEffect": "I voti influenzano la Prima Pagina",
+    "fulltextFetchedAt": "Arricchito il {date}",
+    "fulltextReport": "Segnala problema",
+    "fulltextReportPlaceholder": "Descrivi cosa non va (opzionale)...",
+    "fulltextReportSent": "Segnalazione inviata"
   },
   "feed": {
     "subscribe": "Iscriviti",
