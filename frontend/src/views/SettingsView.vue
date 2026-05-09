@@ -39,6 +39,22 @@
       </div>
     </section>
 
+    <!-- Appearance -->
+    <section class="settings-section">
+      <h2>{{ t('settings.theme') }}</h2>
+      <div class="theme-row">
+        <span class="info-label">{{ t('settings.darkMode') }}</span>
+        <button
+          class="theme-toggle"
+          :class="{ active: theme === 'dark' }"
+          :aria-label="t('settings.toggleTheme')"
+          @click="toggleTheme()"
+        >
+          <span class="toggle-thumb" />
+        </button>
+      </div>
+    </section>
+
     <!-- Password -->
     <section class="settings-section">
       <h2>{{ t('settings.changePassword') }}</h2>
@@ -96,9 +112,11 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { authApi, type Session } from '@/api/auth'
+import { useTheme } from '@/composables/useTheme'
 
 const { t, locale } = useI18n()
 const auth = useAuthStore()
+const { theme, toggle: toggleTheme } = useTheme()
 
 // ── Language ──────────────────────────────────────────────
 const selectedLang = ref(auth.user?.preferred_lang || 'it')
@@ -183,7 +201,43 @@ onMounted(loadSessions)
   max-width: 640px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  background: var(--bbf-bg);
+  color: var(--bbf-ink);
 }
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.theme-toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--bbf-line-strong);
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+.theme-toggle.active { background: var(--bbf-primary); }
+
+.toggle-thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform 0.2s;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+}
+.theme-toggle.active .toggle-thumb { transform: translateX(18px); }
 
 .page-title {
   font-size: 1.5rem;
@@ -192,9 +246,9 @@ onMounted(loadSessions)
 }
 
 .settings-section {
-  background: white;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
+  background: var(--bbf-surface);
+  border: 1px solid var(--bbf-line);
+  border-radius: var(--bbf-r-lg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -203,24 +257,27 @@ onMounted(loadSessions)
   font-size: 1rem;
   font-weight: 700;
   margin: 0 0 1.25rem;
-  color: #111;
+  color: var(--bbf-ink);
 }
 
 .info-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0; }
 .info-row { display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; }
-.info-label { color: #666; min-width: 80px; }
-.info-value { font-weight: 500; }
+.info-label { color: var(--bbf-ink-3); min-width: 80px; }
+.info-value { font-weight: 500; color: var(--bbf-ink); }
 
 .mt { margin-top: 1.25rem; }
 
 .form-group { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 1rem; }
-.form-group label { font-size: 0.875rem; font-weight: 600; color: #444; }
+.form-group label { font-size: 0.875rem; font-weight: 600; color: var(--bbf-ink-2); }
 .form-group input, .select-input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--bbf-line-strong);
+  border-radius: var(--bbf-r-md);
   font-size: 0.875rem;
   max-width: 280px;
+  background: var(--bbf-surface-2);
+  color: var(--bbf-ink);
+  font-family: var(--bbf-font);
 }
 
 .settings-form { display: flex; flex-direction: column; }
@@ -232,53 +289,56 @@ onMounted(loadSessions)
   font-size: 0.75rem;
   font-weight: 600;
 }
-.badge-admin { background: #fef3c7; color: #92400e; }
-.badge-user { background: #e0e7ff; color: #3730a3; }
-.badge-current { background: #dbeafe; color: #1e40af; }
-.badge-revoked { background: #f3f4f6; color: #6b7280; }
+.badge-admin { background: var(--bbf-warn-soft); color: var(--bbf-warn); }
+.badge-user { background: var(--bbf-primary-soft); color: var(--bbf-primary-ink); }
+.badge-current { background: var(--bbf-info-soft); color: var(--bbf-info); }
+.badge-revoked { background: var(--bbf-mute-soft); color: var(--bbf-mute); }
 
-.saved-msg { font-size: 0.8rem; color: #059669; margin-left: 0.75rem; }
-.form-error { font-size: 0.875rem; color: #dc2626; background: #fef2f2; padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 0.75rem; }
+.saved-msg { font-size: 0.8rem; color: var(--bbf-ok); margin-left: 0.75rem; }
+.form-error { font-size: 0.875rem; color: var(--bbf-danger); background: var(--bbf-danger-soft); padding: 0.5rem 0.75rem; border-radius: var(--bbf-r-sm); margin-bottom: 0.75rem; }
 
 .btn-primary {
   align-self: flex-start;
   padding: 0.5rem 1.25rem;
   border: none;
-  border-radius: 4px;
-  background: #1a1a1a;
+  border-radius: var(--bbf-r-md);
+  background: var(--bbf-primary);
   color: white;
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 600;
+  font-family: var(--bbf-font);
 }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .sessions-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .session-card {
-  border: 1px solid #e5e5e5;
-  border-radius: 6px;
+  border: 1px solid var(--bbf-line);
+  border-radius: var(--bbf-r-md);
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   font-size: 0.875rem;
+  background: var(--bbf-surface);
 }
-.session-card.current { border-color: #93c5fd; background: #eff6ff; }
+.session-card.current { border-color: var(--bbf-info); background: var(--bbf-info-soft); }
 .session-meta { display: flex; align-items: center; gap: 0.5rem; min-width: 140px; }
-.session-ip { font-weight: 600; font-family: monospace; }
-.session-detail { flex: 1; display: flex; flex-direction: column; gap: 0.125rem; color: #555; font-size: 0.8rem; }
-.ua { color: #333; font-weight: 500; }
-.date { color: #888; }
+.session-ip { font-weight: 600; font-family: var(--bbf-mono); color: var(--bbf-ink); }
+.session-detail { flex: 1; display: flex; flex-direction: column; gap: 0.125rem; color: var(--bbf-ink-2); font-size: 0.8rem; }
+.ua { color: var(--bbf-ink); font-weight: 500; }
+.date { color: var(--bbf-ink-3); }
 .btn-revoke {
   padding: 0.25rem 0.75rem;
-  border: 1px solid #fca5a5;
-  border-radius: 4px;
-  background: #fef2f2;
-  color: #dc2626;
+  border: 1px solid var(--bbf-danger);
+  border-radius: var(--bbf-r-sm);
+  background: var(--bbf-danger-soft);
+  color: var(--bbf-danger);
   cursor: pointer;
   font-size: 0.8rem;
   white-space: nowrap;
+  font-family: var(--bbf-font);
 }
-.btn-revoke:hover { background: #fee2e2; }
-.loading, .empty { color: #888; text-align: center; padding: 1rem; font-size: 0.875rem; }
+.btn-revoke:hover { background: var(--bbf-danger); color: white; }
+.loading, .empty { color: var(--bbf-ink-3); text-align: center; padding: 1rem; font-size: 0.875rem; }
 </style>

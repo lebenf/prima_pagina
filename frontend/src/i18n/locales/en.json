@@ -5,7 +5,10 @@
     "settings": "Settings",
     "admin": "Administration",
     "logout": "Log out",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "toggleMenu": "Toggle menu",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
   },
   "auth": {
     "login": "Log in",
@@ -245,7 +248,11 @@
     "expires": "Expires",
     "revoke": "Revoke",
     "revokeSession": "Revoke",
-    "revokeConfirm": "Revoke this session?"
+    "revokeConfirm": "Revoke this session?",
+    "toggleTheme": "Toggle dark mode",
+    "theme": "Theme",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   },
   "errors": {
     "network": "Network error. Check your connection.",

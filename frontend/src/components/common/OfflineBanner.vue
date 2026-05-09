@@ -36,7 +36,7 @@ const isOffline = computed(() => !online.value)
   top: 0;
   left: 0;
   right: 0;
-  background: #1d4ed8;
+  background: var(--bbf-info);
   color: white;
   text-align: center;
   padding: 0.5rem 1rem;

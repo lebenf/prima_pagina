@@ -94,7 +94,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 }
 .fulltext-ok {
   font-size: 0.65rem;
-  color: #059669;
+  color: var(--bbf-ok);
   cursor: default;
 }
 .report-wrap {
@@ -107,13 +107,13 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   padding: 0;
   cursor: pointer;
   font-size: 0.6rem;
-  color: #9ca3af;
+  color: var(--bbf-ink-4);
   line-height: 1;
   opacity: 0.5;
   transition: opacity 0.15s, color 0.15s;
 }
 .report-btn:hover {
-  color: #d97706;
+  color: var(--bbf-warn);
   opacity: 1;
 }
 .report-popover {
@@ -121,10 +121,10 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   top: calc(100% + 4px);
   left: 0;
   z-index: 100;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  background: var(--bbf-surface);
+  border: 1px solid var(--bbf-line);
+  border-radius: var(--bbf-r-md);
+  box-shadow: var(--bbf-shadow-3);
   padding: 0.5rem;
   width: 220px;
   display: flex;
@@ -134,17 +134,19 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .report-textarea {
   width: 100%;
   font-size: 0.8rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border: 1px solid var(--bbf-line-strong);
+  border-radius: var(--bbf-r-sm);
   padding: 0.3rem 0.4rem;
   resize: none;
-  font-family: inherit;
+  font-family: var(--bbf-font);
   line-height: 1.4;
   box-sizing: border-box;
+  background: var(--bbf-surface-2);
+  color: var(--bbf-ink);
 }
 .report-textarea:focus {
   outline: none;
-  border-color: #6b7280;
+  border-color: var(--bbf-primary);
 }
 .report-actions {
   display: flex;
@@ -153,16 +155,17 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 }
 .btn-cancel, .btn-submit {
   padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
+  border-radius: var(--bbf-r-sm);
+  border: 1px solid var(--bbf-line-strong);
   background: none;
   cursor: pointer;
   font-size: 0.8rem;
+  color: var(--bbf-ink-2);
 }
 .btn-submit {
-  background: #1a1a1a;
+  background: var(--bbf-primary);
   color: white;
-  border-color: #1a1a1a;
+  border-color: var(--bbf-primary);
 }
 .btn-submit:disabled {
   opacity: 0.5;
@@ -170,7 +173,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 }
 .sent-msg {
   font-size: 0.8rem;
-  color: #059669;
+  color: var(--bbf-ok);
   padding: 0.25rem 0;
   text-align: center;
 }

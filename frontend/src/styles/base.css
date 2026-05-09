@@ -1,0 +1,28 @@
+/* Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later */
+* { box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  background: var(--bbf-bg);
+  color: var(--bbf-ink);
+  font-family: var(--bbf-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mono { font-family: var(--bbf-mono); font-feature-settings: 'zero', 'ss01'; }
+.num  { font-variant-numeric: tabular-nums; }
+
+mark {
+  background-color: var(--bbf-warn-soft);
+  color: var(--bbf-ink);
+  padding: 0 2px;
+  border-radius: var(--bbf-r-xs);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--bbf-primary);
+  outline-offset: 2px;
+}

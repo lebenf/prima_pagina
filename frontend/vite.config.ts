@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Prima Pagina',
         short_name: 'PrimaPagina',
         description: 'Il tuo aggregatore RSS personale con IA',
-        theme_color: '#1a1a1a',
-        background_color: '#ffffff',
+        theme_color: '#FAFAF7',
+        background_color: '#FAFAF7',
         display: 'standalone',
         start_url: '/',
         icons: [

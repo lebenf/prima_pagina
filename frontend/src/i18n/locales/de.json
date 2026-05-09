@@ -5,7 +5,10 @@
     "settings": "Einstellungen",
     "admin": "Administration",
     "logout": "Abmelden",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "toggleMenu": "Menü ein-/ausblenden",
+    "expand": "Seitenleiste erweitern",
+    "collapse": "Seitenleiste reduzieren"
   },
   "auth": {
     "login": "Anmelden",
@@ -245,7 +248,11 @@
     "expires": "Läuft ab",
     "revoke": "Widerrufen",
     "revokeSession": "Widerrufen",
-    "revokeConfirm": "Diese Sitzung widerrufen?"
+    "revokeConfirm": "Diese Sitzung widerrufen?",
+    "toggleTheme": "Dunkelmodus umschalten",
+    "theme": "Design",
+    "darkMode": "Dunkelmodus",
+    "lightMode": "Hellmodus"
   },
   "errors": {
     "network": "Netzwerkfehler. Überprüfen Sie Ihre Verbindung.",

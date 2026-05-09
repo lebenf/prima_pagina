@@ -7,6 +7,8 @@ import App from './App.vue'
 import router from './router'
 import { i18n, setLocale, detectBrowserLocale } from './i18n'
 
+import './styles/tokens.css'
+import './styles/base.css'
 import './assets/main.css'
 
 const app = createApp(App)

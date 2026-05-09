@@ -1,17 +1,17 @@
 services:
   backend:
     build: ./backend
-    env_file: .env
+    env_file: backend/.env
     volumes:
       - prima_pagina_data:/app/data
     ports:
-      - "8800:8000"
+      - "${BACKEND_PORT:-8800}:8000"
     restart: unless-stopped
 
   frontend:
     build: ./frontend
     ports:
-      - "8880:80"
+      - "${FRONTEND_PORT:-8880}:80"
     depends_on:
       - backend
     restart: unless-stopped

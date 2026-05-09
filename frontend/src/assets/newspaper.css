@@ -5,20 +5,20 @@
   font-weight: 900;
   letter-spacing: -0.02em;
   text-align: center;
-  border-top: 3px solid #1a1a1a;
-  border-bottom: 3px solid #1a1a1a;
+  border-top: 3px solid var(--bbf-ink);
+  border-bottom: 3px solid var(--bbf-ink);
   padding: 0.5rem 0;
+  color: var(--bbf-ink);
 }
 
-/* Regola orizzontale stile giornale */
 .newspaper-rule {
   border: none;
-  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid var(--bbf-line-strong);
   margin: 1rem 0;
 }
 
 .newspaper-rule.double {
-  border-top: 3px double #1a1a1a;
+  border-top: 3px double var(--bbf-line-strong);
 }
 
 /* Layout colonne */
@@ -26,12 +26,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0;
-  border-top: 2px solid #1a1a1a;
+  border-top: 2px solid var(--bbf-line-strong);
 }
 
 .category-column {
   padding: 1rem;
-  border-right: 1px solid #d4c5b0;
+  border-right: 1px solid var(--bbf-line);
 }
 
 .category-column:last-child {
@@ -47,7 +47,7 @@
 
 .second-row-article {
   padding: 1rem;
-  border-right: 1px solid #d4c5b0;
+  border-right: 1px solid var(--bbf-line);
 }
 
 .second-row-article:last-child {
@@ -56,10 +56,10 @@
 
 /* Skeleton animation */
 .skeleton-line {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--bbf-surface-2) 25%, var(--bbf-surface-3) 50%, var(--bbf-surface-2) 75%);
   background-size: 200% 100%;
   animation: skeleton-pulse 1.5s infinite;
-  border-radius: 4px;
+  border-radius: var(--bbf-r-xs);
   margin-bottom: 0.5rem;
 }
 
@@ -73,6 +73,6 @@
   .masthead { font-size: 2rem; }
   .second-row { grid-template-columns: 1fr; }
   .columns-section { grid-template-columns: 1fr; }
-  .category-column { border-right: none; border-bottom: 1px solid #d4c5b0; }
-  .second-row-article { border-right: none; border-bottom: 1px solid #d4c5b0; }
+  .category-column { border-right: none; border-bottom: 1px solid var(--bbf-line); }
+  .second-row-article { border-right: none; border-bottom: 1px solid var(--bbf-line); }
 }

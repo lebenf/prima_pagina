@@ -1,0 +1,98 @@
+/* Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* surfaces */
+  --bbf-bg:           oklch(0.985 0.005 80);
+  --bbf-surface:      #ffffff;
+  --bbf-surface-2:    oklch(0.97 0.005 80);
+  --bbf-surface-3:    oklch(0.945 0.006 80);
+  --bbf-line:         oklch(0.91 0.008 80);
+  --bbf-line-strong:  oklch(0.84 0.012 80);
+
+  /* ink */
+  --bbf-ink:          oklch(0.20 0.01 270);
+  --bbf-ink-2:        oklch(0.40 0.01 270);
+  --bbf-ink-3:        oklch(0.58 0.01 270);
+  --bbf-ink-4:        oklch(0.72 0.01 270);
+
+  /* accents */
+  --bbf-primary:      oklch(0.52 0.20 270);
+  --bbf-primary-2:    oklch(0.46 0.21 270);
+  --bbf-primary-soft: oklch(0.95 0.04 270);
+  --bbf-primary-ink:  oklch(0.32 0.18 270);
+
+  --bbf-warm:         oklch(0.70 0.13 45);
+  --bbf-warm-2:       oklch(0.62 0.14 40);
+  --bbf-warm-soft:    oklch(0.96 0.04 50);
+
+  /* semantic */
+  --bbf-ok:           oklch(0.60 0.13 155);
+  --bbf-ok-soft:      oklch(0.95 0.05 155);
+  --bbf-warn:         oklch(0.72 0.14 75);
+  --bbf-warn-soft:    oklch(0.96 0.06 85);
+  --bbf-info:         oklch(0.62 0.11 220);
+  --bbf-info-soft:    oklch(0.95 0.04 220);
+  --bbf-danger:       oklch(0.58 0.18 22);
+  --bbf-danger-soft:  oklch(0.96 0.04 22);
+  --bbf-mute:         oklch(0.60 0.005 270);
+  --bbf-mute-soft:    oklch(0.94 0.003 270);
+
+  /* radius */
+  --bbf-r-xs: 4px;
+  --bbf-r-sm: 6px;
+  --bbf-r-md: 10px;
+  --bbf-r-lg: 14px;
+  --bbf-r-xl: 20px;
+
+  /* shadows */
+  --bbf-shadow-1: 0 1px 0 oklch(0.91 0.008 80);
+  --bbf-shadow-2: 0 1px 2px rgba(20,18,28,.04), 0 4px 12px rgba(20,18,28,.04);
+  --bbf-shadow-3: 0 4px 14px rgba(20,18,28,.08), 0 12px 40px rgba(20,18,28,.08);
+
+  /* type */
+  --bbf-font: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --bbf-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* spacing scale (4px base) */
+  --bbf-s-1: 4px;
+  --bbf-s-2: 8px;
+  --bbf-s-3: 12px;
+  --bbf-s-4: 16px;
+  --bbf-s-5: 22px;
+  --bbf-s-6: 28px;
+  --bbf-s-7: 36px;
+  --bbf-s-8: 48px;
+}
+
+[data-theme="dark"] {
+  --bbf-bg:           oklch(0.18 0.012 270);
+  --bbf-surface:      oklch(0.22 0.012 270);
+  --bbf-surface-2:    oklch(0.25 0.012 270);
+  --bbf-surface-3:    oklch(0.29 0.014 270);
+  --bbf-line:         oklch(0.32 0.014 270);
+  --bbf-line-strong:  oklch(0.40 0.018 270);
+  --bbf-ink:          oklch(0.97 0.005 80);
+  --bbf-ink-2:        oklch(0.82 0.008 80);
+  --bbf-ink-3:        oklch(0.65 0.01 270);
+  --bbf-ink-4:        oklch(0.50 0.012 270);
+
+  --bbf-primary:      oklch(0.72 0.18 270);
+  --bbf-primary-2:    oklch(0.78 0.17 270);
+  --bbf-primary-soft: oklch(0.32 0.10 270);
+  --bbf-primary-ink:  oklch(0.85 0.12 270);
+
+  --bbf-warm:         oklch(0.78 0.12 50);
+  --bbf-warm-2:       oklch(0.84 0.12 50);
+  --bbf-warm-soft:    oklch(0.32 0.07 50);
+
+  --bbf-ok:     oklch(0.72 0.13 155); --bbf-ok-soft:     oklch(0.30 0.06 155);
+  --bbf-warn:   oklch(0.80 0.14 80);  --bbf-warn-soft:   oklch(0.32 0.07 80);
+  --bbf-info:   oklch(0.74 0.11 220); --bbf-info-soft:   oklch(0.30 0.06 220);
+  --bbf-danger: oklch(0.70 0.17 22);  --bbf-danger-soft: oklch(0.32 0.10 22);
+  --bbf-mute:   oklch(0.65 0.006 270); --bbf-mute-soft:  oklch(0.30 0.006 270);
+
+  --bbf-shadow-1: 0 1px 0 oklch(0.32 0.014 270);
+  --bbf-shadow-2: 0 1px 2px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.12);
+  --bbf-shadow-3: 0 4px 14px rgba(0,0,0,.24), 0 12px 40px rgba(0,0,0,.24);
+}

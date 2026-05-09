@@ -2,7 +2,8 @@
 <template>
   <div class="flex items-center justify-center" :class="containerClass">
     <svg
-      class="animate-spin text-primary-500"
+      class="animate-spin"
+      :style="{ color: 'var(--bbf-primary)' }"
       :class="sizeClass"
       fill="none"
       viewBox="0 0 24 24"

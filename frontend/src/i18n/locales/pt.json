@@ -5,7 +5,10 @@
     "settings": "Definições",
     "admin": "Administração",
     "logout": "Terminar sessão",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "toggleMenu": "Mostrar/ocultar menu",
+    "expand": "Expandir barra lateral",
+    "collapse": "Recolher barra lateral"
   },
   "auth": {
     "login": "Entrar",
@@ -245,7 +248,11 @@
     "expires": "Expira",
     "revoke": "Revogar",
     "revokeSession": "Revogar",
-    "revokeConfirm": "Revogar esta sessão?"
+    "revokeConfirm": "Revogar esta sessão?",
+    "toggleTheme": "Alternar modo escuro",
+    "theme": "Tema",
+    "darkMode": "Modo escuro",
+    "lightMode": "Modo claro"
   },
   "errors": {
     "network": "Erro de rede. Verifique a sua ligação.",

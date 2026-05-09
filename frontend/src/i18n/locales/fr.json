@@ -5,7 +5,10 @@
     "settings": "Paramètres",
     "admin": "Administration",
     "logout": "Se déconnecter",
-    "feeds": "Flux"
+    "feeds": "Flux",
+    "toggleMenu": "Afficher/masquer le menu",
+    "expand": "Développer la barre latérale",
+    "collapse": "Réduire la barre latérale"
   },
   "auth": {
     "login": "Se connecter",
@@ -245,7 +248,11 @@
     "expires": "Expire",
     "revoke": "Révoquer",
     "revokeSession": "Révoquer",
-    "revokeConfirm": "Révoquer cette session ?"
+    "revokeConfirm": "Révoquer cette session ?",
+    "toggleTheme": "Basculer le mode sombre",
+    "theme": "Thème",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair"
   },
   "errors": {
     "network": "Erreur réseau. Vérifiez votre connexion.",
