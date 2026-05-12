@@ -16,7 +16,7 @@ class ClaudeProvider(LLMProvider):
     def __init__(self, config, encryption_key: str = ""):
         super().__init__(config)
         api_key = self._resolve_api_key(config, encryption_key)
-        timeout_sec = getattr(config, "timeout_sec", 300)
+        timeout_sec = getattr(config, "timeout_sec", None) or 300
         self._client = anthropic.AsyncAnthropic(api_key=api_key, timeout=float(timeout_sec))
 
     @staticmethod
@@ -35,8 +35,13 @@ class ClaudeProvider(LLMProvider):
         excerpt: str,
         language: str | None,
         available_categories: list[str],
+        tagging_language: str = "it",
+        existing_tags: list[str] | None = None,
     ) -> TaggingResult:
-        prompt = self._build_tagging_prompt(title, excerpt, language, available_categories)
+        prompt = self._build_tagging_prompt(
+            title, excerpt, language, available_categories,
+            tagging_language=tagging_language, existing_tags=existing_tags,
+        )
         try:
             message = await self._client.messages.create(
                 model=self.model,

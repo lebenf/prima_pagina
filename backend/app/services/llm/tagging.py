@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Background tagging queue: processes new articles via LLM without blocking the feed fetcher.
-Uses asyncio.Queue — single coroutine worker, no DB concurrency issues.
+Uses asyncio.Queue — N concurrent workers based on LLMConfig.max_concurrent.
 """
 import asyncio
 import logging
+from collections import Counter
 from uuid import UUID
 
 from sqlalchemy import select
@@ -18,7 +19,7 @@ from app.services.llm.router import llm_router
 
 logger = logging.getLogger(__name__)
 
-tagging_queue: asyncio.Queue[UUID] = asyncio.Queue(maxsize=1000)
+tagging_queue: asyncio.Queue[UUID] = asyncio.Queue(maxsize=2000)
 
 
 async def enqueue_article_for_tagging(article_id: UUID) -> None:
@@ -28,8 +29,8 @@ async def enqueue_article_for_tagging(article_id: UUID) -> None:
         logger.warning("tagging: queue full, skipping article %s", article_id)
 
 
-async def tagging_worker() -> None:
-    logger.info("tagging: worker started")
+async def tagging_worker(worker_id: int = 0) -> None:
+    logger.info("tagging: worker %d started", worker_id)
     while True:
         try:
             article_id = await tagging_queue.get()
@@ -37,10 +38,43 @@ async def tagging_worker() -> None:
             tagging_queue.task_done()
             await asyncio.sleep(0.5)
         except asyncio.CancelledError:
-            logger.info("tagging: worker stopped")
+            logger.info("tagging: worker %d stopped", worker_id)
             break
         except Exception as exc:
-            logger.error("tagging: worker error: %s", exc, exc_info=True)
+            logger.error("tagging: worker %d error: %s", worker_id, exc, exc_info=True)
+
+
+async def start_tagging_workers(n: int = 1) -> list[asyncio.Task]:
+    """Spawn n tagging worker tasks. Called from main.py lifespan."""
+    n = max(1, n)
+    logger.info("tagging: starting %d worker(s)", n)
+    return [asyncio.create_task(tagging_worker(worker_id=i)) for i in range(n)]
+
+
+async def get_tagging_concurrency() -> int:
+    """Read max_concurrent from the active tagging LLM config."""
+    from app.config import get_settings
+    settings = get_settings()
+    async with AsyncSessionLocal() as db:
+        from app.models.llm_config import LLMConfig
+        result = await db.execute(
+            select(LLMConfig)
+            .where(LLMConfig.is_active == True)  # noqa: E712
+            .order_by(LLMConfig.is_default.desc(), LLMConfig.priority.desc())
+        )
+        configs = result.scalars().all()
+        config = next((c for c in configs if "tagging" in (c.use_for or [])), None)
+        return config.max_concurrent if config else 1
+
+
+async def _fetch_top_existing_tags(db, limit: int = 80) -> list[str]:
+    """Return the most-used tags across all articles to guide LLM reuse."""
+    result = await db.execute(select(Article.tags).where(Article.tags.isnot(None)))
+    counter: Counter = Counter()
+    for (tags,) in result:
+        if tags:
+            counter.update(tags)
+    return [tag for tag, _ in counter.most_common(limit)]
 
 
 async def _tag_article(article_id: UUID) -> None:
@@ -58,6 +92,8 @@ async def _tag_article(article_id: UUID) -> None:
         categories_result = await db.execute(select(Category.slug))
         category_slugs = [row[0] for row in categories_result]
 
+        existing_tags = await _fetch_top_existing_tags(db)
+
         settings = get_settings()
         provider = await llm_router.get_provider_for(
             "tagging", db, encryption_key=settings.encryption_key
@@ -66,11 +102,15 @@ async def _tag_article(article_id: UUID) -> None:
             logger.debug("tagging: no provider configured, skipping article %s", article_id)
             return
 
+        tagging_language = getattr(provider.config, "tagging_language", "it") or "it"
+
         result = await provider.tag_article(
             title=article.title or "",
             excerpt=article.content_excerpt or "",
             language=article.language,
             available_categories=category_slugs,
+            tagging_language=tagging_language,
+            existing_tags=existing_tags,
         )
 
         article.tags = result.tags
@@ -89,7 +129,7 @@ async def _tag_article(article_id: UUID) -> None:
 
         await db.commit()
         logger.debug(
-            "tagging: article %s tagged: %s", article_id, result.tags
+            "tagging: article %s tagged: %s (lang=%s)", article_id, result.tags, tagging_language
         )
 
     from app.services.related_articles import compute_related_articles

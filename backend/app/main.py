@@ -25,7 +25,7 @@ from app.config import get_settings
 from app.database import AsyncSessionLocal
 from app.limiter import limiter
 from app.services.auth_service import create_initial_admin
-from app.services.llm.tagging import tagging_worker
+from app.services.llm.tagging import get_tagging_concurrency, start_tagging_workers
 from app.services.scheduler import setup_scheduler
 
 settings = get_settings()
@@ -46,10 +46,12 @@ async def lifespan(app: FastAPI):
         await create_initial_admin(session)
 
     _scheduler = setup_scheduler()
-    _tagging_task = asyncio.create_task(tagging_worker())
+    n_workers = await get_tagging_concurrency()
+    _tagging_tasks = await start_tagging_workers(n_workers)
     yield
-    _tagging_task.cancel()
-    await asyncio.gather(_tagging_task, return_exceptions=True)
+    for t in _tagging_tasks:
+        t.cancel()
+    await asyncio.gather(*_tagging_tasks, return_exceptions=True)
     _scheduler.shutdown(wait=False)
     logger.info("Shutting down Prima Pagina backend")
 

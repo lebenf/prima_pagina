@@ -249,6 +249,8 @@ def _to_response(config: LLMConfig) -> LLMConfigResponse:
         is_active=config.is_active,
         priority=config.priority,
         timeout_sec=config.timeout_sec,
+        max_concurrent=config.max_concurrent,
+        tagging_language=config.tagging_language,
         created_at=config.created_at,
     )
 
@@ -285,6 +287,8 @@ async def create_llm_config(
         is_active=body.is_active,
         priority=body.priority,
         timeout_sec=body.timeout_sec,
+        max_concurrent=body.max_concurrent,
+        tagging_language=body.tagging_language,
     )
     if body.api_key:
         config.set_api_key(body.api_key, settings.encryption_key)

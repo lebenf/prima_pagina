@@ -40,6 +40,8 @@ class LLMProvider(ABC):
         excerpt: str,
         language: str | None,
         available_categories: list[str],
+        tagging_language: str = "it",
+        existing_tags: list[str] | None = None,
     ) -> TaggingResult: ...
 
     @abstractmethod
@@ -65,15 +67,29 @@ class LLMProvider(ABC):
         excerpt: str,
         language: str | None,
         available_categories: list[str],
+        tagging_language: str = "it",
+        existing_tags: list[str] | None = None,
     ) -> str:
+        lang_names = {
+            "it": "Italian", "en": "English", "fr": "French",
+            "de": "German", "es": "Spanish", "pt": "Portuguese",
+        }
+        lang_name = lang_names.get(tagging_language, tagging_language)
         cats = ", ".join(available_categories) if available_categories else "none"
+        existing_hint = ""
+        if existing_tags:
+            existing_hint = (
+                f"\nExisting tags already in use (reuse these FIRST if applicable): "
+                f"{', '.join(existing_tags[:60])}"
+            )
         return f"""Analyze this article and respond ONLY with a valid JSON object.
 
 Title: {title}
-Detected language: {language or 'unknown'}
+Article language: {language or 'unknown'}
 Excerpt: {excerpt[:500]}
 
 Available categories: {cats}
+{existing_hint}
 
 Reply with this EXACT JSON format:
 {{
@@ -84,9 +100,10 @@ Reply with this EXACT JSON format:
 }}
 
 Rules:
-- tags: 2-5 lowercase tags, preferably in Italian
-- category_slug: MUST be one of the available categories above, or null
-- language: ISO 639-1 code (it, en, fr, de, es, pt)
+- tags: 2-5 lowercase tags WRITTEN IN {lang_name.upper()} (mandatory, regardless of article language)
+- tags: reuse existing tags listed above when they fit; create new ones only if no existing tag is suitable
+- category_slug: pick the BEST matching category from the list above, or null only if none fit at all
+- language: ISO 639-1 code of the article (it, en, fr, de, es, pt)
 - confidence: classification confidence 0.0-1.0
 """
 

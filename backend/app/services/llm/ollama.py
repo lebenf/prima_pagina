@@ -24,10 +24,15 @@ class OllamaProvider(LLMProvider):
         excerpt: str,
         language: str | None,
         available_categories: list[str],
+        tagging_language: str = "it",
+        existing_tags: list[str] | None = None,
     ) -> TaggingResult:
-        prompt = self._build_tagging_prompt(title, excerpt, language, available_categories)
+        prompt = self._build_tagging_prompt(
+            title, excerpt, language, available_categories,
+            tagging_language=tagging_language, existing_tags=existing_tags,
+        )
         try:
-            async with httpx.AsyncClient(timeout=min(30.0, self.timeout_sec)) as client:
+            async with httpx.AsyncClient(timeout=float(self.timeout_sec)) as client:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
                     json={

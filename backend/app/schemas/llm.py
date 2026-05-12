@@ -18,6 +18,8 @@ class LLMConfigCreate(BaseModel):
     is_active: bool = True
     priority: int = 0
     timeout_sec: int = 300
+    max_concurrent: int = 1
+    tagging_language: str = "it"
 
 
 class LLMConfigUpdate(BaseModel):
@@ -30,6 +32,8 @@ class LLMConfigUpdate(BaseModel):
     is_active: bool | None = None
     priority: int | None = None
     timeout_sec: int | None = None
+    max_concurrent: int | None = None
+    tagging_language: str | None = None
 
 
 class LLMConfigResponse(BaseModel):
@@ -44,6 +48,8 @@ class LLMConfigResponse(BaseModel):
     is_active: bool
     priority: int
     timeout_sec: int
+    max_concurrent: int
+    tagging_language: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

@@ -124,6 +124,8 @@ export interface LLMConfig {
   is_active: boolean
   priority: number
   timeout_sec: number
+  max_concurrent: number
+  tagging_language: string
   created_at: string
 }
 
@@ -138,6 +140,8 @@ export interface LLMConfigCreate {
   is_active: boolean
   priority: number
   timeout_sec: number
+  max_concurrent: number
+  tagging_language: string
 }
 
 // ── Plugin ──────────────────────────────────────────────────

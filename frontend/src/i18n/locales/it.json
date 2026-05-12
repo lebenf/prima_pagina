@@ -183,7 +183,12 @@
       "isDefault": "Default",
       "endpoint": "Endpoint URL",
       "apiKey": "API Key",
-      "model": "Modello"
+      "model": "Modello",
+      "timeoutSec": "Timeout (sec)",
+      "maxConcurrent": "Richieste simultanee",
+      "maxConcurrentHint": "Per Ollama locale usa 1. Richiede riavvio.",
+      "taggingLanguage": "Lingua dei tag",
+      "taggingLanguageHint": "Lingua in cui il modello genera i tag."
     },
     "plugins": {
       "title": "Plugin Notifiche",

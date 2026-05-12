@@ -25,6 +25,8 @@ class LLMConfig(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     priority: Mapped[int] = mapped_column(Integer, default=0)
     timeout_sec: Mapped[int] = mapped_column(Integer, default=300)
+    max_concurrent: Mapped[int] = mapped_column(Integer, default=1)
+    tagging_language: Mapped[str] = mapped_column(String(10), default="it")
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     def set_api_key(self, plain: str, fernet_key: str) -> None:

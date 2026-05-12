@@ -74,7 +74,7 @@
               <input v-model.number="form.priority" type="number" min="1" max="100" />
             </div>
             <div class="form-group">
-              <label>Timeout (sec)</label>
+              <label>{{ t('admin.llm.timeoutSec') }}</label>
               <input v-model.number="form.timeout_sec" type="number" min="30" max="3600" />
             </div>
             <div class="form-group form-group-inline">
@@ -84,6 +84,26 @@
             <div class="form-group form-group-inline">
               <label>{{ t('admin.users.active') }}</label>
               <input v-model="form.is_active" type="checkbox" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ t('admin.llm.maxConcurrent') }}</label>
+              <input v-model.number="form.max_concurrent" type="number" min="1" max="10" />
+              <span class="field-hint">{{ t('admin.llm.maxConcurrentHint') }}</span>
+            </div>
+            <div class="form-group" v-if="form.use_for.includes('tagging')">
+              <label>{{ t('admin.llm.taggingLanguage') }}</label>
+              <select v-model="form.tagging_language">
+                <option value="it">Italiano</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="pt">Português</option>
+              </select>
+              <span class="field-hint">{{ t('admin.llm.taggingLanguageHint') }}</span>
             </div>
           </div>
 
@@ -123,6 +143,8 @@ const defaultForm = (): LLMConfigCreate & { api_key: string } => ({
   is_active: true,
   priority: 10,
   timeout_sec: 300,
+  max_concurrent: 1,
+  tagging_language: 'it',
 })
 
 const form = ref(defaultForm())
@@ -142,6 +164,8 @@ watch(() => props.config, (c) => {
       is_active: c.is_active,
       priority: c.priority,
       timeout_sec: c.timeout_sec,
+      max_concurrent: c.max_concurrent,
+      tagging_language: c.tagging_language,
     }
   } else {
     form.value = defaultForm()
@@ -160,6 +184,8 @@ async function submit() {
       is_active: form.value.is_active,
       priority: form.value.priority,
       timeout_sec: form.value.timeout_sec,
+      max_concurrent: form.value.max_concurrent,
+      tagging_language: form.value.tagging_language,
     }
     if (form.value.label) payload.label = form.value.label
     if (form.value.endpoint_url) payload.endpoint_url = form.value.endpoint_url
@@ -204,6 +230,7 @@ async function submit() {
 .input-with-toggle input { flex: 1; }
 .toggle-btn { background: none; border: 1px solid #ccc; border-radius: 4px; padding: 0 0.5rem; cursor: pointer; }
 .form-error { color: #dc2626; font-size: 0.875rem; padding: 0.5rem; background: #fef2f2; border-radius: 4px; }
+.field-hint { font-size: 0.75rem; color: #888; margin-top: 2px; }
 .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; }
 .btn-primary { padding: 0.5rem 1.25rem; border: none; border-radius: 4px; background: #1a1a1a; color: white; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }

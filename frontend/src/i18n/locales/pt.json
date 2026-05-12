@@ -183,7 +183,12 @@
       "isDefault": "Predefinido",
       "endpoint": "URL do endpoint",
       "apiKey": "Chave API",
-      "model": "Modelo"
+      "model": "Modelo",
+      "timeoutSec": "Timeout (seg)",
+      "maxConcurrent": "Pedidos simultâneos",
+      "maxConcurrentHint": "Para Ollama local, manter em 1. Requer reinício.",
+      "taggingLanguage": "Idioma das etiquetas",
+      "taggingLanguageHint": "Idioma em que o modelo gera as etiquetas."
     },
     "plugins": {
       "title": "Plugins de notificação",

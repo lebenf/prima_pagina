@@ -183,7 +183,12 @@
       "isDefault": "Predeterminado",
       "endpoint": "URL del endpoint",
       "apiKey": "Clave API",
-      "model": "Modelo"
+      "model": "Modelo",
+      "timeoutSec": "Tiempo límite (seg)",
+      "maxConcurrent": "Solicitudes simultáneas",
+      "maxConcurrentHint": "Para Ollama local, mantener en 1. Requiere reinicio.",
+      "taggingLanguage": "Idioma de etiquetas",
+      "taggingLanguageHint": "Idioma en el que el modelo genera las etiquetas."
     },
     "plugins": {
       "title": "Plugins de notificación",

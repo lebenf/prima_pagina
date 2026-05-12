@@ -183,7 +183,12 @@
       "isDefault": "Default",
       "endpoint": "Endpoint URL",
       "apiKey": "API Key",
-      "model": "Model"
+      "model": "Model",
+      "timeoutSec": "Timeout (sec)",
+      "maxConcurrent": "Max concurrent requests",
+      "maxConcurrentHint": "For local Ollama, keep at 1. Restart required.",
+      "taggingLanguage": "Tag language",
+      "taggingLanguageHint": "Language for LLM-generated tags."
     },
     "plugins": {
       "title": "Notification Plugins",
