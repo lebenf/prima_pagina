@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 
-from sqlalchemy import JSON, Text
+from sqlalchemy import JSON
 from sqlalchemy.types import TypeDecorator
 
 
@@ -15,15 +15,20 @@ class SafeJSON(TypeDecorator):
     deserialises strings on load so callers always receive a dict/list.
     """
 
-    impl = Text
+    impl = JSON
     cache_ok = True
 
     def process_bind_param(self, value, dialect):
         if value is None:
             return None
         if isinstance(value, str):
-            return value  # already serialised
-        return json.dumps(value, ensure_ascii=False)
+            # Already serialised (e.g. legacy raw-SQL inserts) — parse back
+            # to a Python object so the JSON impl doesn't double-encode it.
+            try:
+                return json.loads(value)
+            except (TypeError, ValueError):
+                return value
+        return value
 
     def process_result_value(self, value, dialect):
         if value is None:
