@@ -8,22 +8,28 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field, model_validator
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, require_admin
 from app.config import get_settings
+from app.models.article import Article
+from app.models.event import Event
 from app.models.llm_config import LLMConfig
+from app.models.llm_function_assignment import LLMFunction, LLMFunctionAssignment
 from app.models.plugin_config import PluginConfig
 from app.models.session import Session
 from app.models.user import User
 from app.plugins.manager import PLUGIN_DESCRIPTIONS, PLUGIN_LABELS, PLUGIN_REGISTRY
 from app.schemas.auth import UserResponse
+from app.schemas.event import EventDetail, MergeEventsRequest
 from app.schemas.llm import (
     HealthCheckResponse,
     LLMConfigCreate,
     LLMConfigResponse,
     LLMConfigUpdate,
+    LLMFunctionAssignmentItem,
+    LLMFunctionAssignmentUpdate,
 )
 from app.schemas.plugin import (
     PluginAvailable,
@@ -244,10 +250,7 @@ def _to_response(config: LLMConfig) -> LLMConfigResponse:
         model_name=config.model_name,
         endpoint_url=config.endpoint_url,
         has_api_key=config.api_key_encrypted is not None,
-        use_for=config.use_for or [],
-        is_default=config.is_default,
         is_active=config.is_active,
-        priority=config.priority,
         timeout_sec=config.timeout_sec,
         max_concurrent=config.max_concurrent,
         tagging_language=config.tagging_language,
@@ -261,7 +264,7 @@ async def list_llm_configs(
     _admin: User = Depends(require_admin),
 ):
     result = await db.execute(
-        select(LLMConfig).order_by(LLMConfig.priority.desc(), LLMConfig.created_at)
+        select(LLMConfig).order_by(LLMConfig.created_at.desc())
     )
     return [_to_response(c) for c in result.scalars().all()]
 
@@ -274,18 +277,12 @@ async def create_llm_config(
 ):
     settings = get_settings()
 
-    if body.is_default:
-        await _clear_defaults(db, body.use_for)
-
     config = LLMConfig(
         provider=body.provider,
         label=body.label,
         model_name=body.model_name,
         endpoint_url=body.endpoint_url,
-        use_for=body.use_for,
-        is_default=body.is_default,
         is_active=body.is_active,
-        priority=body.priority,
         timeout_sec=body.timeout_sec,
         max_concurrent=body.max_concurrent,
         tagging_language=body.tagging_language,
@@ -311,10 +308,6 @@ async def update_llm_config(
         raise HTTPException(status_code=404, detail="LLM config not found")
 
     settings = get_settings()
-
-    if body.is_default is True:
-        use_for = body.use_for if body.use_for is not None else config.use_for
-        await _clear_defaults(db, use_for, exclude_id=config_id)
 
     for field, value in body.model_dump(exclude_none=True).items():
         if field == "api_key":
@@ -362,6 +355,200 @@ async def health_check_llm_config(
     except Exception as exc:
         latency_ms = int((time.monotonic() - start) * 1000)
         return HealthCheckResponse(ok=False, latency_ms=latency_ms, error=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# LLM function assignment endpoints
+# ---------------------------------------------------------------------------
+
+def _assignment_to_response(assignment: LLMFunctionAssignment) -> LLMFunctionAssignmentItem:
+    return LLMFunctionAssignmentItem(
+        function=assignment.function,
+        primary_config_id=assignment.primary_config_id,
+        fallback_config_id=assignment.fallback_config_id,
+    )
+
+
+async def _ensure_function_rows(db: AsyncSession) -> list[LLMFunctionAssignment]:
+    """Self-healing: insert any of the 5 LLMFunction rows missing from the table.
+    Needed because test DBs are built via Base.metadata.create_all, which skips
+    the migration's data seed."""
+    result = await db.execute(select(LLMFunctionAssignment))
+    existing = {a.function: a for a in result.scalars().all()}
+    created = False
+    for function in LLMFunction:
+        if function.value not in existing:
+            row = LLMFunctionAssignment(function=function.value)
+            db.add(row)
+            existing[function.value] = row
+            created = True
+    if created:
+        await db.commit()
+        for row in existing.values():
+            await db.refresh(row)
+    return [existing[function.value] for function in LLMFunction]
+
+
+@router.get("/llm-functions", response_model=list[LLMFunctionAssignmentItem])
+async def list_llm_functions(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    rows = await _ensure_function_rows(db)
+    return [_assignment_to_response(row) for row in rows]
+
+
+@router.put("/llm-functions/{function}", response_model=LLMFunctionAssignmentItem)
+async def update_llm_function(
+    function: str,
+    body: LLMFunctionAssignmentUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    try:
+        LLMFunction(function)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown LLM function: {function}")
+
+    for config_id in (body.primary_config_id, body.fallback_config_id):
+        if config_id is None:
+            continue
+        config = await db.get(LLMConfig, config_id)
+        if not config or not config.is_active:
+            raise HTTPException(
+                status_code=422, detail=f"LLM config {config_id} not found or not active"
+            )
+
+    assignment = await db.get(LLMFunctionAssignment, function)
+    if assignment is None:
+        assignment = LLMFunctionAssignment(function=function)
+        db.add(assignment)
+
+    assignment.primary_config_id = body.primary_config_id
+    assignment.fallback_config_id = body.fallback_config_id
+
+    await db.commit()
+    await db.refresh(assignment)
+    return _assignment_to_response(assignment)
+
+
+# ---------------------------------------------------------------------------
+# Event editorial-correction endpoints
+# ---------------------------------------------------------------------------
+
+@router.post("/events/{event_id}/merge", response_model=EventDetail)
+async def merge_events(
+    event_id: UUID,
+    body: MergeEventsRequest,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Moves all members of `event_id` (the source) into `target_event_id`,
+    recomputes aggregates on the target, then deletes the source."""
+    from sqlalchemy import func
+
+    if event_id == body.target_event_id:
+        raise HTTPException(status_code=400, detail="Un evento non può essere unito a se stesso")
+
+    source = await db.get(Event, event_id)
+    target = await db.get(Event, body.target_event_id)
+    if not source or not target:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    await db.execute(
+        update(Article).where(Article.event_id == event_id).values(event_id=body.target_event_id)
+    )
+    await db.flush()
+
+    target.tags = sorted(set(target.tags or []) | set(source.tags or []))
+    target.article_count += source.article_count
+    if source.last_activity_at > target.last_activity_at:
+        target.last_activity_at = source.last_activity_at
+
+    source_count_result = await db.execute(
+        select(func.count(func.distinct(Article.feed_id))).where(Article.event_id == body.target_event_id)
+    )
+    target.source_count = source_count_result.scalar_one() or target.source_count
+
+    await db.delete(source)
+    await db.commit()
+
+    from app.services.event_service import get_event_detail
+    detail = await get_event_detail(db, body.target_event_id, admin.id, admin.preferred_lang or "it")
+    return detail
+
+
+@router.post("/events/{event_id}/detach/{article_id}", response_model=EventDetail)
+async def detach_article(
+    event_id: UUID,
+    article_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Removes article_id from event_id, creating a new single-member event for
+    it, and recomputes the original event's aggregates."""
+    from sqlalchemy import func
+
+    from app.models.event import EventStatus, TitleSource
+
+    event = await db.get(Event, event_id)
+    article = await db.get(Article, article_id)
+    if not event or not article or article.event_id != event_id:
+        raise HTTPException(status_code=404, detail="Event or article not found")
+
+    new_event = Event(
+        title=article.title or "(senza titolo)",
+        title_source=TitleSource.REPRESENTATIVE.value,
+        synopsis=article.content_excerpt,
+        tags=article.tags or [],
+        category_id=event.category_id,
+        status=EventStatus.OPEN.value,
+        article_count=1,
+        source_count=1,
+        opened_at=article.published_at or datetime.utcnow(),
+        last_activity_at=article.published_at or datetime.utcnow(),
+    )
+    db.add(new_event)
+    await db.flush()
+    article.event_id = new_event.id
+    article.event_role = "seed"
+
+    event.article_count = max(0, event.article_count - 1)
+    remaining_tags: set[str] = set()
+    remaining_result = await db.execute(select(Article.tags).where(Article.event_id == event_id))
+    for (tags,) in remaining_result:
+        remaining_tags |= set(tags or [])
+    event.tags = sorted(remaining_tags)
+
+    source_count_result = await db.execute(
+        select(func.count(func.distinct(Article.feed_id))).where(Article.event_id == event_id)
+    )
+    event.source_count = source_count_result.scalar_one() or 0
+
+    await db.commit()
+
+    from app.services.event_service import get_event_detail
+    detail = await get_event_detail(db, event_id, admin.id, admin.preferred_lang or "it")
+    return detail
+
+
+@router.post("/events/{event_id}/regenerate-summary", response_model=EventDetail)
+async def force_regenerate_summary(
+    event_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    from app.services.event_summary_service import regenerate_event_summary
+    from app.services.event_service import get_event_detail
+
+    event = await db.get(Event, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    await regenerate_event_summary(event_id)
+    await db.refresh(event)
+    detail = await get_event_detail(db, event_id, admin.id, admin.preferred_lang or "it")
+    return detail
 
 
 # ---------------------------------------------------------------------------
@@ -563,17 +750,3 @@ async def revoke_invitation(
         raise HTTPException(status_code=404, detail="Invitation not found")
     invitation.used_at = datetime.utcnow()
     await db.commit()
-
-
-# ---------------------------------------------------------------------------
-
-async def _clear_defaults(db, use_for: list[str], exclude_id: UUID | None = None) -> None:
-    result = await db.execute(
-        select(LLMConfig).where(LLMConfig.is_default == True)  # noqa: E712
-    )
-    for cfg in result.scalars().all():
-        if exclude_id and cfg.id == exclude_id:
-            continue
-        if any(u in (cfg.use_for or []) for u in use_for):
-            cfg.is_default = False
-    await db.flush()

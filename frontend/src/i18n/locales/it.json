@@ -47,7 +47,11 @@
     "fulltextFetchedAt": "Arricchito il {date}",
     "fulltextReport": "Segnala problema",
     "fulltextReportPlaceholder": "Descrivi cosa non va (opzionale)...",
-    "fulltextReportSent": "Segnalazione inviata"
+    "fulltextReportSent": "Segnalazione inviata",
+    "partOfEvent": "Coperto da {count} fonti — Apri l'evento"
+  },
+  "events": {
+    "sourceCount": "{count} fonti"
   },
   "feed": {
     "subscribe": "Iscriviti",
@@ -174,13 +178,9 @@
       "editProvider": "Modifica provider",
       "healthCheck": "Health check",
       "checking": "Verifica in corso...",
-      "defaultFor": "Default per {useCase}",
       "deleteConfirm": "Eliminare il provider {label}?",
       "hasApiKey": "Ha API key",
       "noApiKey": "Nessuna API key",
-      "priority": "Priorità",
-      "useFor": "Usa per",
-      "isDefault": "Default",
       "endpoint": "Endpoint URL",
       "apiKey": "API Key",
       "model": "Modello",
@@ -189,6 +189,21 @@
       "maxConcurrentHint": "Per Ollama locale usa 1. Richiede riavvio.",
       "taggingLanguage": "Lingua dei tag",
       "taggingLanguageHint": "Lingua in cui il modello genera i tag."
+    },
+    "llmFunctions": {
+      "title": "Assegnazione funzioni LLM",
+      "function": "Funzione",
+      "primaryProvider": "Provider principale",
+      "fallbackProvider": "Provider di riserva",
+      "noFallback": "Nessuno",
+      "saved": "Assegnazione aggiornata",
+      "functions": {
+        "tagging": "Tagging automatico",
+        "eventSummary": "Sintesi eventi",
+        "extractionScript": "Estrazione contenuto (CSS selector)",
+        "relatedArticles": "Articoli correlati",
+        "digest": "Rassegna stampa"
+      }
     },
     "plugins": {
       "title": "Plugin Notifiche",

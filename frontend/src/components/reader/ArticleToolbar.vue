@@ -15,7 +15,8 @@
     <div class="flex-1" />
 
     <VoteButtons
-      :article-id="article.id"
+      target="article"
+      :target-id="article.id"
       :initial-vote="article.user_vote ?? 0"
       :compact="true"
       @vote-changed="onVoteChanged"

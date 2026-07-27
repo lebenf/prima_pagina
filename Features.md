@@ -27,20 +27,34 @@
 - Stato articolo: letto, salvato (starred), archiviato
 
 ## Prima Pagina (front page)
-- Layout stile giornale: articolo hero, seconda riga, colonne per categoria
-- Scoring degli articoli: decadimento temporale (emivita 12h), peso fonte, affinità categoria, peso topic, penalità articoli già letti
+- Impaginata per **evento**, non più per singolo articolo (v. sezione "Eventi" sotto): layout stile giornale invariato — evento hero, seconda riga, colonne per categoria
+- Scoring degli eventi: decadimento temporale sull'ultima attività (emivita 12h), peso fonte massimo tra i feed membri, affinità categoria, peso topic, bonus diversità fonti (smorzato, max 2×), penalità di lettura a 3 livelli (tutti letti/alcuni letti/nessuno letto)
 - Affinità categoria calcolata dalla cronologia di lettura dell'utente
-- Peso topic basato sulle preferenze personali per tag (aggiornate dai voti)
+- Peso topic basato sulle preferenze personali per tag (aggiornate dai voti su articoli ed eventi)
 - topic_prefs e category_affinity precaricati una volta per richiesta (no N+1)
 - Finestra temporale 48 ore
+- Grouping hero/seconda-riga/colonne resta lato server (`GET /api/v1/events/frontpage`), stesso schema di risposta della versione per-articolo
 
-## Voti articoli (pollice su/giù)
-- Voto +1 / -1 per articolo; aggiornabile e rimovibile
-- I voti aggiornano le preferenze per tag (user_topic_preferences) dell'utente
+## Eventi (clustering articoli multi-fonte)
+- Un **evento** aggrega uno o più articoli che coprono lo stesso accadimento specifico, anche da fonti diverse
+- Clustering al termine del tagging: candidati = eventi aperti nella finestra configurabile (`EVENT_CLUSTERING_WINDOW_HOURS`, default 72h), stessa categoria del feed, tag sovrapposti; disambiguazione tramite chiamata LLM leggera (stesso provider assegnato al tagging) quando ci sono candidati
+- Precisione sopra recall: in caso di dubbio o errore LLM viene creato un nuovo evento invece di un raggruppamento errato
+- Titolo/sinossi iniziali = titolo/estratto dell'articolo rappresentante (`title_source = "representative"`); rigenerati via LLM (`title_source = "llm"`) in background alla prima nuova fonte o ogni 3° articolo — fallimento silenzioso, titolo/sinossi correnti invariati
+- `source_count` = conteggio feed distinti tra i membri, ricalcolato ad ogni attach (non un contatore incrementale)
+- Job giornaliero `close_stale_events`: chiude gli eventi `open` senza attività entro la finestra di clustering
+- Voto +1/-1 sull'evento: aggiorna le preferenze tag dell'utente per l'unione dei tag di tutti gli articoli membri (`POST`/`DELETE /api/v1/events/{id}/vote`)
+- `GET /api/v1/events/{id}` — dettaglio evento con lista membri; `GET /api/v1/events/{id}/articles`
+- Correzioni editoriali admin: `POST /admin/events/{id}/merge` (unisce due eventi, elimina la sorgente), `POST /admin/events/{id}/detach/{article_id}` (scorpora un articolo in un nuovo evento singolo), `POST /admin/events/{id}/regenerate-summary` (forza la rigenerazione LLM)
+- Nessun backfill retroattivo: gli articoli pre-esistenti al deploy restano senza evento
+
+## Voti articoli ed eventi (pollice su/giù)
+- Voto +1 / -1 per articolo o per evento; aggiornabile e rimovibile; stessa logica di aggiornamento preferenze condivisa (`apply_topic_preference_delta`)
+- I voti aggiornano le preferenze per tag (user_topic_preferences) dell'utente — per un evento, sull'unione dei tag di tutti gli articoli membri
 - Score tag normalizzato [-5, +5] → peso ranking [0.1, 2.0]; neutro = 1.0
-- I voti non penalizzano il singolo articolo ma l'intero topic (tag) associato
+- I voti non penalizzano il singolo articolo/evento ma l'intero topic (tag) associato
 - `user_vote` incluso in ogni risposta lista/dettaglio/frontpage
 - Voti degli utenti indipendenti: non influenzano il ranking degli altri utenti
+- **VoteButtons**: componente unico riutilizzabile con prop `target: 'article' | 'event'` (default `article`), instrada la chiamata API di conseguenza
 
 ## Estrazione full-text intelligente (T16)
 - Tre modalità per feed: `trafilatura` (default), `script` (CSS selectors via LLM), `auto` (trafilatura + generazione script automatica)
@@ -73,7 +87,8 @@
 - Navigazione a articoli correlati inline: click apre il correlato nello stesso drawer
 - Blocco scroll del body durante apertura, ripristinato alla chiusura/smontaggio
 - Pulsante "Apri nel Reader" per passare alla vista Reader con l'articolo già selezionato
-- **VoteButtons** (pollice su/giù): componente compatto riutilizzabile in ArticleToolbar (Reader), HeroArticle, SecondRowArticle, CategoryColumn e ArticleDrawer
+- **VoteButtons** (pollice su/giù): componente compatto riutilizzabile in ArticleToolbar (Reader), EventCard, CategoryColumn, EventView e ArticleDrawer
+- ArticleDrawer mostra un banner "Coperto da N fonti — Apri l'evento" quando l'articolo aperto appartiene a un evento multi-fonte, con link a `/events/{id}`
 - Aggiornamento ottimistico del voto con rollback in caso di errore API
 - `@click.stop` sui bottoni voto — non propaga click verso l'apertura articolo
 - `vote-changed` emit aggiorna lo stato in-memory nei componenti della Prima Pagina senza ricaricare
@@ -111,6 +126,13 @@
 - Prompt bilingue con lingua rilevata automaticamente
 - Fallback silenzioso in caso di timeout o errore
 
+## Routing LLM per funzione
+- Provider assegnabile indipendentemente per 5 funzioni: `tagging`, `event_summary`, `extraction_script`, `related_articles`, `digest`, ciascuna con provider primario e fallback opzionale
+- Tre provider supportati: Ollama (self-hosted), Claude (Anthropic), Mistral — stessa interfaccia astratta (`tag_article`, `generate_digest`, `generate_text`, `health_check`)
+- In caso di errore del provider primario, uso automatico del fallback configurato (se presente) con warning in log; senza fallback l'errore si propaga
+- `GET`/`PUT /api/v1/admin/llm-functions` — le 5 funzioni sono sempre presenti nella risposta anche prima di essere configurate
+- Admin UI: tabella assegnazione funzioni con dropdown provider primario/fallback, salvataggio inline per riga
+
 ## Inviti utenti
 - Admin genera link monouso con token UUID (`/join?token=...`)
 - Link opzionalmente legato a un'email specifica
@@ -125,7 +147,7 @@
 - **Sessioni**: lista globale con filtro per utente, revoca singola, revoca tutte per utente
 - **Feed**: lista con filtro categoria e ricerca, colonna Fulltext con badge script (verde/arancio/rosso per success rate), modale dettaglio script con CSS selectors e bottone rigenerazione, iscrizione/disiscrizione inline, refresh, CRUD completo
 - **Categorie**: CRUD con nomi multilingua (it/en/fr/de/es/pt), raggruppamento per categoria nel reader
-- **Config LLM**: CRUD provider (Ollama/Claude), health check con latenza, timeout configurabile (30–3600s), selezione uso (tagging/digest), priorità
+- **Config LLM**: CRUD provider (Ollama/Claude/Mistral), health check con latenza, timeout configurabile (30–3600s); assegnazione provider per funzione in una tabella dedicata (v. "Routing LLM per funzione")
 - **Plugin**: CRUD configurazioni plugin, test connessione inline, form dinamico guidato dallo schema
 
 ## Plugin notifiche

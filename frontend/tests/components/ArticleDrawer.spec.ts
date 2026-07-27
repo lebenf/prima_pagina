@@ -28,6 +28,17 @@ const mockArticle = {
   user_vote: 0,
 }
 
+const defaultArticleData = {
+  id: 'art-1', feed_id: 'f-1', feed_title: 'Test Feed',
+  title: 'Test Article Title', url: 'https://example.com/article',
+  author: 'Author Name', content_excerpt: '<p>Excerpt.</p>',
+  content_fulltext: '<p>Full text.</p>', fulltext_status: 'ok',
+  fulltext_loading: false, language: 'en', tags: ['tech'],
+  published_at: '2026-04-22T10:00:00Z', fetched_at: '2026-04-22T10:30:00Z',
+  is_read: false, is_starred: false, is_archived: false, user_vote: 0,
+  event_id: null as string | null, event_source_count: null as number | null,
+}
+
 // Mock APIs — inline data (vi.mock is hoisted, cannot reference outer vars)
 vi.mock('@/api/articles', () => ({
   articlesApi: {
@@ -40,6 +51,7 @@ vi.mock('@/api/articles', () => ({
         fulltext_loading: false, language: 'en', tags: ['tech'],
         published_at: '2026-04-22T10:00:00Z', fetched_at: '2026-04-22T10:30:00Z',
         is_read: false, is_starred: false, is_archived: false, user_vote: 0,
+        event_id: null, event_source_count: null,
       },
     }),
     fulltextStatus: vi.fn().mockResolvedValue({ data: { status: 'ok', fulltext_available: false } }),
@@ -54,7 +66,7 @@ vi.mock('@/api/articles', () => ({
 const RelatedArticlesStub = { template: '<div class="related-articles-stub"></div>', props: ['articleId'] }
 const LoadingSpinnerStub = { template: '<div class="spinner-stub"></div>' }
 const RelativeTimeStub = { template: '<span class="relative-time-stub"></span>', props: ['date'] }
-const VoteButtonsStub = { template: '<div class="vote-buttons-stub"></div>', props: ['articleId', 'initialVote', 'compact'] }
+const VoteButtonsStub = { template: '<div class="vote-buttons-stub"></div>', props: ['targetId', 'target', 'initialVote', 'compact'] }
 
 function makeWrapper(articleId: string | null = null) {
   const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
@@ -158,5 +170,39 @@ describe('ArticleDrawer', () => {
     makeWrapper(null)
     await new Promise(r => setTimeout(r, 20))
     expect(articlesApi.get).not.toHaveBeenCalled()
+  })
+
+  it('shows the "part of event" banner when the article belongs to a multi-source event', async () => {
+    const { articlesApi } = await import('@/api/articles')
+    vi.mocked(articlesApi.get).mockResolvedValueOnce({
+      data: { ...defaultArticleData, event_id: 'evt-1', event_source_count: 3 },
+    } as any)
+
+    const wrapper = makeWrapper('art-1')
+    await new Promise(r => setTimeout(r, 20))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.event-banner').exists()).toBe(true)
+  })
+
+  it('hides the "part of event" banner for a single-source event', async () => {
+    const { articlesApi } = await import('@/api/articles')
+    vi.mocked(articlesApi.get).mockResolvedValueOnce({
+      data: { ...defaultArticleData, event_id: 'evt-1', event_source_count: 1 },
+    } as any)
+
+    const wrapper = makeWrapper('art-1')
+    await new Promise(r => setTimeout(r, 20))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.event-banner').exists()).toBe(false)
+  })
+
+  it('hides the "part of event" banner when the article has no event', async () => {
+    const wrapper = makeWrapper('art-1')
+    await new Promise(r => setTimeout(r, 20))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.event-banner').exists()).toBe(false)
   })
 })

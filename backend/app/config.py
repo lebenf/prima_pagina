@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     feed_default_interval_min: int = 60
     digest_cron: str = "0 7 * * *"
 
+    # Events
+    event_clustering_window_hours: int = 72
+
     # LLM
     ollama_endpoint: str = "http://localhost:11434"
     anthropic_api_key: str = ""

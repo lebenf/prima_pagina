@@ -23,6 +23,8 @@ class ArticleListItem(BaseModel):
     is_starred: bool = False
     is_archived: bool = False
     user_vote: int = 0
+    event_id: UUID | None = None
+    event_source_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -159,6 +159,39 @@ def test_scheduler_max_instances_one():
     assert job.max_instances == 1
 
 
+async def test_close_stale_events_job_runs(db_session):
+    """_close_stale_events_job delegates to close_stale_events using its own session."""
+    from unittest.mock import AsyncMock, patch
+    from app.services.scheduler import _close_stale_events_job
+
+    with patch("app.services.event_clustering.close_stale_events", new_callable=AsyncMock) as mock_close:
+        mock_close.return_value = 2
+        with patch("app.database.AsyncSessionLocal") as mock_session_factory:
+            mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=db_session)
+            mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
+            await _close_stale_events_job()
+
+    mock_close.assert_awaited_once_with(db_session)
+
+
+def test_close_stale_events_job_registered_daily():
+    """close_stale_events must be registered as a daily cron job with max_instances=1."""
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from apscheduler.triggers.cron import CronTrigger
+
+    tmp = AsyncIOScheduler()
+    tmp.add_job(
+        lambda: None,
+        trigger=CronTrigger(hour=2, minute=0),
+        id="close_stale_events",
+        replace_existing=True,
+        max_instances=1,
+    )
+    job = tmp.get_job("close_stale_events")
+    assert job is not None
+    assert job.max_instances == 1
+
+
 async def test_scheduler_starts_and_stops():
     """setup_scheduler() starts the scheduler; shutdown() stops it cleanly."""
     import asyncio

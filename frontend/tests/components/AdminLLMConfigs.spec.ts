@@ -31,10 +31,7 @@ const mockConfigs = [
     model_name: 'claude-sonnet-4-5',
     endpoint_url: null,
     has_api_key: true,
-    use_for: ['digest'],
-    is_default: true,
     is_active: true,
-    priority: 10,
     created_at: '2026-01-01',
   },
 ]
@@ -45,7 +42,7 @@ function makeWrapper() {
   return mount(AdminLLMConfigs, {
     global: {
       plugins: [i18n],
-      stubs: { LLMConfigFormModal: true, ConfirmDialog: true, Teleport: true },
+      stubs: { LLMConfigFormModal: true, ConfirmDialog: true, Teleport: true, LlmFunctionAssignments: true },
     },
   })
 }

@@ -47,7 +47,11 @@
     "fulltextFetchedAt": "Angereichert am {date}",
     "fulltextReport": "Problem melden",
     "fulltextReportPlaceholder": "Beschreiben Sie das Problem (optional)...",
-    "fulltextReportSent": "Meldung gesendet"
+    "fulltextReportSent": "Meldung gesendet",
+    "partOfEvent": "Von {count} Quellen berichtet — Ereignis öffnen"
+  },
+  "events": {
+    "sourceCount": "{count} Quellen"
   },
   "feed": {
     "subscribe": "Abonnieren",
@@ -174,13 +178,9 @@
       "editProvider": "Anbieter bearbeiten",
       "healthCheck": "Gesundheitscheck",
       "checking": "Wird geprüft...",
-      "defaultFor": "Standard für {useCase}",
       "deleteConfirm": "Anbieter {label} löschen?",
       "hasApiKey": "Hat API-Schlüssel",
       "noApiKey": "Kein API-Schlüssel",
-      "priority": "Priorität",
-      "useFor": "Verwenden für",
-      "isDefault": "Standard",
       "endpoint": "Endpoint-URL",
       "apiKey": "API-Schlüssel",
       "model": "Modell",
@@ -189,6 +189,21 @@
       "maxConcurrentHint": "Für lokales Ollama auf 1 belassen. Neustart erforderlich.",
       "taggingLanguage": "Tag-Sprache",
       "taggingLanguageHint": "Sprache, in der das Modell Tags generiert."
+    },
+    "llmFunctions": {
+      "title": "LLM-Funktionszuweisung",
+      "function": "Funktion",
+      "primaryProvider": "Primärer Anbieter",
+      "fallbackProvider": "Fallback-Anbieter",
+      "noFallback": "Keiner",
+      "saved": "Zuweisung aktualisiert",
+      "functions": {
+        "tagging": "Automatisches Tagging",
+        "eventSummary": "Ereigniszusammenfassung",
+        "extractionScript": "Inhaltsextraktion (CSS-Selektor)",
+        "relatedArticles": "Verwandte Artikel",
+        "digest": "Presseschau"
+      }
     },
     "plugins": {
       "title": "Benachrichtigungs-Plugins",

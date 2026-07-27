@@ -70,6 +70,15 @@ async def _digest_generation_job() -> None:
                 logger.error("digest generation failed for %s: %s", user.username, e, exc_info=True)
 
 
+async def _close_stale_events_job() -> None:
+    from app.database import AsyncSessionLocal
+    from app.services.event_clustering import close_stale_events
+
+    async with AsyncSessionLocal() as db:
+        count = await close_stale_events(db)
+        logger.info("scheduler: closed %d stale event(s)", count)
+
+
 def setup_scheduler() -> AsyncIOScheduler:
     """Register jobs and start the scheduler. Called from main.py lifespan."""
     scheduler.add_job(
@@ -95,6 +104,14 @@ def setup_scheduler() -> AsyncIOScheduler:
         _digest_generation_job,
         trigger=CronTrigger.from_crontab(settings.digest_cron),
         id="digest_generation",
+        replace_existing=True,
+        max_instances=1,
+    )
+
+    scheduler.add_job(
+        _close_stale_events_job,
+        trigger=CronTrigger(hour=2, minute=0),
+        id="close_stale_events",
         replace_existing=True,
         max_instances=1,
     )

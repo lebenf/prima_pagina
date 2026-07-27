@@ -14,6 +14,7 @@
             <select v-model="form.provider" :disabled="isEdit">
               <option value="ollama">Ollama</option>
               <option value="claude">Claude (Anthropic)</option>
+              <option value="mistral">Mistral</option>
             </select>
           </div>
 
@@ -32,6 +33,10 @@
                 <option value="gemma2" />
                 <option value="phi3" />
               </template>
+              <template v-else-if="form.provider === 'mistral'">
+                <option value="mistral-large-latest" />
+                <option value="mistral-small-latest" />
+              </template>
               <template v-else>
                 <option value="claude-opus-4-5" />
                 <option value="claude-sonnet-4-5" />
@@ -40,19 +45,23 @@
             </datalist>
           </div>
 
-          <div v-if="form.provider === 'ollama'" class="form-group">
+          <div v-if="form.provider === 'ollama' || form.provider === 'mistral'" class="form-group">
             <label>{{ t('admin.llm.endpoint') }}</label>
-            <input v-model="form.endpoint_url" type="url" placeholder="http://ollama:11434" />
+            <input
+              v-model="form.endpoint_url"
+              type="url"
+              :placeholder="form.provider === 'mistral' ? 'https://api.mistral.ai' : 'http://ollama:11434'"
+            />
           </div>
 
-          <div v-if="form.provider === 'claude'" class="form-group">
+          <div v-if="form.provider === 'claude' || form.provider === 'mistral'" class="form-group">
             <label>{{ t('admin.llm.apiKey') }}{{ isEdit ? ' (lascia vuoto per non cambiare)' : ' *' }}</label>
             <div class="input-with-toggle">
               <input
                 v-model="form.api_key"
                 :type="showKey ? 'text' : 'password'"
-                :required="!isEdit && form.provider === 'claude'"
-                placeholder="sk-ant-..."
+                :required="!isEdit"
+                placeholder="sk-ant-... / ..."
               />
               <button type="button" class="toggle-btn" @click="showKey = !showKey">
                 {{ showKey ? '🙈' : '👁️' }}
@@ -60,26 +69,10 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label>{{ t('admin.llm.useFor') }}</label>
-            <div class="checkbox-group">
-              <label><input v-model="form.use_for" type="checkbox" value="tagging" /> Tagging</label>
-              <label><input v-model="form.use_for" type="checkbox" value="digest" /> Digest</label>
-            </div>
-          </div>
-
           <div class="form-row">
-            <div class="form-group">
-              <label>{{ t('admin.llm.priority') }}</label>
-              <input v-model.number="form.priority" type="number" min="1" max="100" />
-            </div>
             <div class="form-group">
               <label>{{ t('admin.llm.timeoutSec') }}</label>
               <input v-model.number="form.timeout_sec" type="number" min="30" max="3600" />
-            </div>
-            <div class="form-group form-group-inline">
-              <label>{{ t('admin.llm.isDefault') }}</label>
-              <input v-model="form.is_default" type="checkbox" />
             </div>
             <div class="form-group form-group-inline">
               <label>{{ t('admin.users.active') }}</label>
@@ -93,7 +86,7 @@
               <input v-model.number="form.max_concurrent" type="number" min="1" max="10" />
               <span class="field-hint">{{ t('admin.llm.maxConcurrentHint') }}</span>
             </div>
-            <div class="form-group" v-if="form.use_for.includes('tagging')">
+            <div class="form-group">
               <label>{{ t('admin.llm.taggingLanguage') }}</label>
               <select v-model="form.tagging_language">
                 <option value="it">Italiano</option>
@@ -138,10 +131,7 @@ const defaultForm = (): LLMConfigCreate & { api_key: string } => ({
   model_name: '',
   endpoint_url: '',
   api_key: '',
-  use_for: [],
-  is_default: false,
   is_active: true,
-  priority: 10,
   timeout_sec: 300,
   max_concurrent: 1,
   tagging_language: 'it',
@@ -159,10 +149,7 @@ watch(() => props.config, (c) => {
       model_name: c.model_name,
       endpoint_url: c.endpoint_url || '',
       api_key: '',
-      use_for: [...c.use_for],
-      is_default: c.is_default,
       is_active: c.is_active,
-      priority: c.priority,
       timeout_sec: c.timeout_sec,
       max_concurrent: c.max_concurrent,
       tagging_language: c.tagging_language,
@@ -179,10 +166,7 @@ async function submit() {
     const payload: Partial<LLMConfigCreate> = {
       provider: form.value.provider,
       model_name: form.value.model_name,
-      use_for: form.value.use_for,
-      is_default: form.value.is_default,
       is_active: form.value.is_active,
-      priority: form.value.priority,
       timeout_sec: form.value.timeout_sec,
       max_concurrent: form.value.max_concurrent,
       tagging_language: form.value.tagging_language,

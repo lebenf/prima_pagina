@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { articlesApi, type Article } from '@/api/articles'
+import { eventsApi, type Event } from '@/api/events'
 import { digestApi, type Digest } from '@/api/digest'
 
 interface FrontPageColumn {
   category_slug: string
   category_name: string
-  articles: Article[]
+  events: Event[]
 }
 
 interface FrontPageData {
-  hero: Article | null
-  second_row: Article[]
+  hero: Event | null
+  second_row: Event[]
   columns: FrontPageColumn[]
   digest_available: boolean
   digest_id: string | null
@@ -34,7 +34,7 @@ export const useFrontPageStore = defineStore('frontpage', () => {
     isLoading.value = true
     error.value = null
     try {
-      const res = await articlesApi.frontpage(lang)
+      const res = await eventsApi.frontpage(lang)
       data.value = res.data
       lastUpdated.value = new Date()
 

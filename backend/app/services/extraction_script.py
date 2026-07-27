@@ -188,10 +188,14 @@ async def generate_extraction_script(
     Ask LLM for CSS selectors, validate, save.
     Returns saved FeedExtractionScript or None on failure.
     """
+    from app.config import get_settings
     from app.models.feed_extraction_script import FeedExtractionScript
+    from app.models.llm_function_assignment import LLMFunction
     from app.services.llm.router import llm_router
 
-    provider = await llm_router.get_provider_for("tagging", db)
+    provider = await llm_router.get_provider_for(
+        LLMFunction.EXTRACTION_SCRIPT, db, encryption_key=get_settings().encryption_key
+    )
     if not provider:
         logger.warning("no LLM provider for extraction script generation (feed %s)", feed.id)
         return None

@@ -47,7 +47,11 @@
     "fulltextFetchedAt": "Enriquecido em {date}",
     "fulltextReport": "Reportar problema",
     "fulltextReportPlaceholder": "Descreva o problema (opcional)...",
-    "fulltextReportSent": "Relatório enviado"
+    "fulltextReportSent": "Relatório enviado",
+    "partOfEvent": "Coberto por {count} fontes — Abrir evento"
+  },
+  "events": {
+    "sourceCount": "{count} fontes"
   },
   "feed": {
     "subscribe": "Subscrever",
@@ -174,13 +178,9 @@
       "editProvider": "Editar fornecedor",
       "healthCheck": "Verificação de saúde",
       "checking": "A verificar...",
-      "defaultFor": "Predefinido para {useCase}",
       "deleteConfirm": "Eliminar o fornecedor {label}?",
       "hasApiKey": "Tem chave API",
       "noApiKey": "Sem chave API",
-      "priority": "Prioridade",
-      "useFor": "Usar para",
-      "isDefault": "Predefinido",
       "endpoint": "URL do endpoint",
       "apiKey": "Chave API",
       "model": "Modelo",
@@ -189,6 +189,21 @@
       "maxConcurrentHint": "Para Ollama local, manter em 1. Requer reinício.",
       "taggingLanguage": "Idioma das etiquetas",
       "taggingLanguageHint": "Idioma em que o modelo gera as etiquetas."
+    },
+    "llmFunctions": {
+      "title": "Atribuição de funções LLM",
+      "function": "Função",
+      "primaryProvider": "Fornecedor principal",
+      "fallbackProvider": "Fornecedor de reserva",
+      "noFallback": "Nenhum",
+      "saved": "Atribuição atualizada",
+      "functions": {
+        "tagging": "Etiquetagem automática",
+        "eventSummary": "Resumo de eventos",
+        "extractionScript": "Extração de conteúdo (seletor CSS)",
+        "relatedArticles": "Artigos relacionados",
+        "digest": "Resumo de imprensa"
+      }
     },
     "plugins": {
       "title": "Plugins de notificação",

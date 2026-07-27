@@ -102,3 +102,44 @@ def score_article(
     """
     read_penalty = 0.1 if is_read else 1.0
     return recency_score(published_at) * source_weight * category_affinity * topic_weight_factor * read_penalty
+
+
+def event_read_penalty(read_states: list[bool]) -> float:
+    """3-tier read penalty for a multi-article event: all members read → 0.1,
+    some (but not all) read → 0.4, none read → 1.0."""
+    if not read_states:
+        return 1.0
+    read_count = sum(1 for r in read_states if r)
+    if read_count == len(read_states):
+        return 0.1
+    if read_count > 0:
+        return 0.4
+    return 1.0
+
+
+def source_diversity_weight(source_count: int) -> float:
+    """Bonus for multi-source corroboration, damped growth, capped at 2x."""
+    return min(1.0 + 0.15 * max(source_count - 1, 0), 2.0)
+
+
+def event_score(
+    *,
+    last_activity_at: datetime | None,
+    source_weight: float = 1.0,
+    category_affinity: float = 1.0,
+    topic_weight_factor: float = 1.0,
+    source_count: int = 1,
+    read_states: list[bool] | None = None,
+) -> float:
+    """
+    score = recency(last_activity) × source_weight × category_affinity ×
+            topic_weight_factor × source_diversity_weight × event_read_penalty
+    """
+    return (
+        recency_score(last_activity_at)
+        * source_weight
+        * category_affinity
+        * topic_weight_factor
+        * source_diversity_weight(source_count)
+        * event_read_penalty(read_states or [])
+    )

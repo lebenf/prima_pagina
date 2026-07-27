@@ -18,6 +18,7 @@ from sqlalchemy.orm import selectinload
 from app.database import AsyncSessionLocal
 from app.models.article import Article
 from app.models.article_llm_data import ArticleLLMData
+from app.models.llm_function_assignment import LLMFunction
 from app.services.llm.router import llm_router
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ async def _find_related(db: AsyncSession, article: Article) -> list[str]:
     from app.config import get_settings
     settings = get_settings()
     provider = await llm_router.get_provider_for(
-        "tagging", db, encryption_key=settings.encryption_key
+        LLMFunction.RELATED_ARTICLES, db, encryption_key=settings.encryption_key
     )
     if not provider:
         return [str(c.id) for c in candidates[:MAX_RELATED]]
@@ -128,6 +129,7 @@ async def _select_related_with_llm(
     )
 
     prompt = (
+        f"Rispondi solo con JSON. Nessun testo aggiuntivo.\n\n"
         f"Hai letto questo articolo:\n"
         f"Titolo: {article.title or '(senza titolo)'}\n"
         f"Tag: {', '.join(article.tags or [])}\n\n"
@@ -139,31 +141,7 @@ async def _select_related_with_llm(
     )
 
     try:
-        if hasattr(provider, '_client'):
-            # Claude provider
-            message = await provider._client.messages.create(
-                model=provider.model,
-                max_tokens=100,
-                messages=[{"role": "user", "content": prompt}],
-                system="Rispondi solo con JSON. Nessun testo aggiuntivo.",
-            )
-            raw = message.content[0].text
-        else:
-            # Ollama provider
-            import httpx
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                res = await client.post(
-                    f"{provider.base_url}/api/generate",
-                    json={
-                        "model": provider.model,
-                        "prompt": prompt,
-                        "stream": False,
-                        "format": "json",
-                        "options": {"temperature": 0.1, "num_predict": 50},
-                    },
-                )
-            raw = res.json()["response"]
-
+        raw = await provider.generate_text(prompt, max_tokens=100)
         indices = json.loads(raw.strip())
         if not isinstance(indices, list):
             raise ValueError("not a list")

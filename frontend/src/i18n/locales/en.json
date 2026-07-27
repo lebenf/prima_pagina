@@ -47,7 +47,11 @@
     "fulltextFetchedAt": "Enriched on {date}",
     "fulltextReport": "Report issue",
     "fulltextReportPlaceholder": "Describe what is wrong (optional)...",
-    "fulltextReportSent": "Report sent"
+    "fulltextReportSent": "Report sent",
+    "partOfEvent": "Covered by {count} sources — Open event"
+  },
+  "events": {
+    "sourceCount": "{count} sources"
   },
   "feed": {
     "subscribe": "Subscribe",
@@ -174,13 +178,9 @@
       "editProvider": "Edit provider",
       "healthCheck": "Health check",
       "checking": "Checking...",
-      "defaultFor": "Default for {useCase}",
       "deleteConfirm": "Delete provider {label}?",
       "hasApiKey": "Has API key",
       "noApiKey": "No API key",
-      "priority": "Priority",
-      "useFor": "Use for",
-      "isDefault": "Default",
       "endpoint": "Endpoint URL",
       "apiKey": "API Key",
       "model": "Model",
@@ -189,6 +189,21 @@
       "maxConcurrentHint": "For local Ollama, keep at 1. Restart required.",
       "taggingLanguage": "Tag language",
       "taggingLanguageHint": "Language for LLM-generated tags."
+    },
+    "llmFunctions": {
+      "title": "LLM Function Assignments",
+      "function": "Function",
+      "primaryProvider": "Primary provider",
+      "fallbackProvider": "Fallback provider",
+      "noFallback": "None",
+      "saved": "Assignment updated",
+      "functions": {
+        "tagging": "Automatic tagging",
+        "eventSummary": "Event summary",
+        "extractionScript": "Content extraction (CSS selector)",
+        "relatedArticles": "Related articles",
+        "digest": "Digest"
+      }
     },
     "plugins": {
       "title": "Notification Plugins",

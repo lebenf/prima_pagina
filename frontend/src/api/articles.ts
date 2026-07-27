@@ -22,6 +22,8 @@ export interface Article {
   is_starred: boolean
   is_archived: boolean
   user_vote?: number
+  event_id?: string | null
+  event_source_count?: number | null
 }
 
 export interface ArticleListResponse {

@@ -8,25 +8,16 @@
     </header>
     <ul class="space-y-3">
       <li
-        v-for="article in column.articles"
-        :key="article.id"
-        class="cursor-pointer hover:bg-gray-50 transition-colors pb-3 border-b border-gray-200 last:border-0 last:pb-0"
-        @click="$emit('article-click', article)"
+        v-for="event in column.events"
+        :key="event.id"
+        class="pb-3 border-b border-gray-200 last:border-0 last:pb-0"
       >
-        <p class="font-serif text-sm font-bold leading-snug mb-1 hover:underline" style="font-family: Georgia, 'Times New Roman', serif;">
-          {{ article.title }}
-        </p>
-        <div class="flex items-center gap-1 text-xs text-gray-400">
-          <span v-if="article.feed_title">{{ article.feed_title }}</span>
-          <span v-if="article.feed_title">·</span>
-          <RelativeTime :date="article.published_at" />
-          <VoteButtons
-            :article-id="article.id"
-            :initial-vote="article.user_vote ?? 0"
-            :compact="true"
-            @vote-changed="(vote, id) => $emit('vote-changed', vote, id)"
-          />
-        </div>
+        <EventCard
+          size="compact"
+          :event="event"
+          @click="$emit('event-click', event)"
+          @vote-changed="(vote, id) => $emit('vote-changed', vote, id)"
+        />
       </li>
     </ul>
   </div>
@@ -34,18 +25,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RelativeTime from '@/components/common/RelativeTime.vue'
-import VoteButtons from '@/components/common/VoteButtons.vue'
-import type { Article } from '@/api/articles'
+import EventCard from './EventCard.vue'
+import type { Event, EventFrontPageColumn } from '@/api/events'
 
-interface Column {
-  category_slug: string
-  category_name: string
-  articles: Article[]
-}
-
-const props = defineProps<{ column: Column }>()
-defineEmits<{ 'article-click': [article: Article]; 'vote-changed': [vote: number, articleId: string] }>()
+const props = defineProps<{ column: EventFrontPageColumn }>()
+defineEmits<{ 'event-click': [event: Event]; 'vote-changed': [vote: number, eventId: string] }>()
 
 const headerColor = computed(() => {
   const hue = props.column.category_slug

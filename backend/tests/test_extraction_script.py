@@ -280,6 +280,32 @@ async def test_generate_script_validation_fails(db_session, sample_feed):
         llm_router.get_provider_for = AsyncMock(return_value=None)
 
 
+async def test_generate_script_requests_extraction_script_function_with_encryption_key(db_session, sample_feed):
+    """Regression: this call site used to omit encryption_key entirely, which would
+    silently fail to authenticate a Claude/Mistral config with only an encrypted key."""
+    from app.models.llm_function_assignment import LLMFunction
+    from app.services.llm.router import llm_router
+
+    mock_provider = AsyncMock()
+    mock_provider.generate_text = AsyncMock(
+        return_value='{"content": "article.post-content"}'
+    )
+
+    original_get = llm_router.get_provider_for
+    llm_router.get_provider_for = AsyncMock(return_value=mock_provider)
+
+    try:
+        await generate_extraction_script(
+            sample_feed, "https://example.com/article", SAMPLE_HTML, db_session
+        )
+        llm_router.get_provider_for.assert_awaited_once()
+        call_args = llm_router.get_provider_for.call_args
+        assert call_args.args[0] == LLMFunction.EXTRACTION_SCRIPT
+        assert "encryption_key" in call_args.kwargs
+    finally:
+        llm_router.get_provider_for = original_get
+
+
 async def test_generate_script_no_provider(db_session, sample_feed):
     from app.services.llm.router import llm_router
 

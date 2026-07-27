@@ -6,7 +6,7 @@ import { createI18n } from 'vue-i18n'
 import VoteButtons from '@/components/common/VoteButtons.vue'
 import en from '@/i18n/locales/en.json'
 
-// Mock the articlesApi
+// Mock both APIs
 vi.mock('@/api/articles', () => ({
   articlesApi: {
     vote: vi.fn().mockResolvedValue({}),
@@ -14,12 +14,20 @@ vi.mock('@/api/articles', () => ({
   },
 }))
 
+vi.mock('@/api/events', () => ({
+  eventsApi: {
+    vote: vi.fn().mockResolvedValue({}),
+    removeVote: vi.fn().mockResolvedValue({}),
+  },
+}))
+
 import { articlesApi } from '@/api/articles'
+import { eventsApi } from '@/api/events'
 
 function makeWrapper(props = {}) {
   const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
   return mount(VoteButtons, {
-    props: { articleId: 'art-1', initialVote: 0, compact: false, ...props },
+    props: { targetId: 'art-1', initialVote: 0, compact: false, ...props },
     global: { plugins: [i18n] },
   })
 }
@@ -54,6 +62,13 @@ describe('VoteButtons', () => {
     const wrapper = makeWrapper({ initialVote: -1 })
     const downBtn = wrapper.findAll('button')[1]
     expect(downBtn.classes()).toContain('active')
+  })
+
+  it('defaults to target=article and calls articlesApi', async () => {
+    const wrapper = makeWrapper({ initialVote: 0 })
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(articlesApi.vote).toHaveBeenCalledWith('art-1', 1)
+    expect(eventsApi.vote).not.toHaveBeenCalled()
   })
 
   it('calls vote API on thumbs-up click', async () => {
@@ -111,13 +126,35 @@ describe('VoteButtons', () => {
 
   it('click stops propagation', async () => {
     const wrapper = makeWrapper()
-    const parentClickSpy = vi.fn()
-    // Wrap in a parent div to test stop propagation
     const btn = wrapper.findAll('button')[0]
     const clickEvent = new MouseEvent('click', { bubbles: true })
-    const stopSpy = vi.spyOn(clickEvent, 'stopPropagation')
     btn.element.dispatchEvent(clickEvent)
     // @click.stop means stopPropagation is called by Vue, test passes if no parent handler called
     expect(wrapper.emitted('click')).toBeFalsy()
+  })
+
+  // ---------------------------------------------------------------------
+  // target="event"
+  // ---------------------------------------------------------------------
+
+  it('target=event calls eventsApi.vote instead of articlesApi', async () => {
+    const wrapper = makeWrapper({ target: 'event', targetId: 'evt-1', initialVote: 0 })
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(eventsApi.vote).toHaveBeenCalledWith('evt-1', 1)
+    expect(articlesApi.vote).not.toHaveBeenCalled()
+  })
+
+  it('target=event calls eventsApi.removeVote on toggle off', async () => {
+    const wrapper = makeWrapper({ target: 'event', targetId: 'evt-1', initialVote: 1 })
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(eventsApi.removeVote).toHaveBeenCalledWith('evt-1')
+    expect(articlesApi.removeVote).not.toHaveBeenCalled()
+  })
+
+  it('target=event emits vote-changed with the event id', async () => {
+    const wrapper = makeWrapper({ target: 'event', targetId: 'evt-1', initialVote: 0 })
+    await wrapper.findAll('button')[0].trigger('click')
+    await new Promise(r => setTimeout(r, 10))
+    expect(wrapper.emitted('vote-changed')![0]).toEqual([1, 'evt-1'])
   })
 })

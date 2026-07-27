@@ -1,6 +1,8 @@
 <!-- Copyright (C) 2026 Lorenzo Benfeati — SPDX-License-Identifier: AGPL-3.0-or-later -->
 <template>
   <div class="admin-section">
+    <LlmFunctionAssignments :configs="configs" />
+
     <div class="section-header">
       <h2>{{ t('admin.llm.title') }}</h2>
       <button class="btn-primary" @click="openCreate">+ {{ t('admin.llm.addProvider') }}</button>
@@ -15,7 +17,6 @@
             <span class="provider-icon">🤖</span>
             <strong>{{ config.label || config.provider }}</strong>
             <span class="model-name">— {{ config.model_name }}</span>
-            <span v-if="config.is_default" class="badge badge-default">DEFAULT</span>
             <span v-if="!config.is_active" class="badge badge-inactive">Inattivo</span>
           </div>
         </div>
@@ -25,16 +26,11 @@
             <span v-if="config.endpoint_url">{{ config.endpoint_url }}</span>
             <span v-else>Anthropic API</span>
             <span class="separator">·</span>
-            <span>{{ t('admin.llm.priority') }}: {{ config.priority }}</span>
-            <span class="separator">·</span>
             <span>
-              <span v-if="config.provider === 'claude'">
+              <span v-if="config.provider === 'claude' || config.provider === 'mistral'">
                 {{ config.has_api_key ? t('admin.llm.hasApiKey') + ' ✓' : t('admin.llm.noApiKey') + ' ✗' }}
               </span>
             </span>
-          </div>
-          <div class="card-meta">
-            {{ t('admin.llm.useFor') }}: {{ config.use_for.join(', ') || '—' }}
           </div>
 
           <div v-if="healthResults[config.id]" :class="['health-result', healthResults[config.id].ok ? 'health-ok' : 'health-fail']">
@@ -86,6 +82,7 @@ import { useI18n } from 'vue-i18n'
 import { adminApi, type LLMConfig } from '@/api/admin'
 import LLMConfigFormModal from './LLMConfigFormModal.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import LlmFunctionAssignments from './LlmFunctionAssignments.vue'
 
 const { t } = useI18n()
 

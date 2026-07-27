@@ -24,10 +24,7 @@ def make_config(has_api_key: bool = False) -> LLMConfig:
     cfg = LLMConfig(
         provider="claude",
         model_name="claude-haiku-4-5-20251001",
-        use_for=["tagging", "digest"],
-        is_default=True,
         is_active=True,
-        priority=0,
     )
     if has_api_key:
         cfg.set_api_key("sk-ant-test-key", ENCRYPTION_KEY)

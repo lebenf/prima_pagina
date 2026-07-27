@@ -50,6 +50,10 @@ class Article(Base):
     tags_source: Mapped[str] = mapped_column(String(20), default=TagsSource.NONE.value)
     published_at: Mapped[datetime | None] = mapped_column(nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    event_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("events.id", ondelete="SET NULL"), nullable=True
+    )
+    event_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     feed: Mapped["Feed"] = relationship(back_populates="articles")  # noqa: F821
     user_states: Mapped[list["ArticleUserState"]] = relationship(  # noqa: F821
@@ -58,3 +62,4 @@ class Article(Base):
     llm_data: Mapped["ArticleLLMData | None"] = relationship(  # noqa: F821
         back_populates="article", uselist=False, cascade="all, delete-orphan"
     )
+    event: Mapped["Event | None"] = relationship(back_populates="articles")  # noqa: F821

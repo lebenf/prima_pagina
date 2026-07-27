@@ -15,6 +15,7 @@ from sqlalchemy.orm import selectinload
 from app.database import AsyncSessionLocal
 from app.models.article import Article, TagsSource
 from app.models.category import Category
+from app.models.llm_function_assignment import LLMFunction
 from app.services.llm.router import llm_router
 
 logger = logging.getLogger(__name__)
@@ -52,18 +53,12 @@ async def start_tagging_workers(n: int = 1) -> list[asyncio.Task]:
 
 
 async def get_tagging_concurrency() -> int:
-    """Read max_concurrent from the active tagging LLM config."""
-    from app.config import get_settings
-    settings = get_settings()
+    """Read max_concurrent from the LLM config assigned to the tagging function."""
+    from app.models.llm_function_assignment import LLMFunctionAssignment
+
     async with AsyncSessionLocal() as db:
-        from app.models.llm_config import LLMConfig
-        result = await db.execute(
-            select(LLMConfig)
-            .where(LLMConfig.is_active == True)  # noqa: E712
-            .order_by(LLMConfig.is_default.desc(), LLMConfig.priority.desc())
-        )
-        configs = result.scalars().all()
-        config = next((c for c in configs if "tagging" in (c.use_for or [])), None)
+        assignment = await db.get(LLMFunctionAssignment, LLMFunction.TAGGING.value)
+        config = await llm_router._resolve_config(assignment, db) if assignment else None
         return config.max_concurrent if config else 1
 
 
@@ -96,7 +91,7 @@ async def _tag_article(article_id: UUID) -> None:
 
         settings = get_settings()
         provider = await llm_router.get_provider_for(
-            "tagging", db, encryption_key=settings.encryption_key
+            LLMFunction.TAGGING, db, encryption_key=settings.encryption_key
         )
         if not provider:
             logger.debug("tagging: no provider configured, skipping article %s", article_id)
@@ -127,10 +122,18 @@ async def _tag_article(article_id: UUID) -> None:
                 if category:
                     article.feed.category_id = category.id
 
+        from app.services.event_clustering import attach_or_create_event
+
+        event, should_regenerate_summary = await attach_or_create_event(db, article, provider)
+
         await db.commit()
         logger.debug(
             "tagging: article %s tagged: %s (lang=%s)", article_id, result.tags, tagging_language
         )
+
+    if should_regenerate_summary:
+        from app.services.event_summary_service import regenerate_event_summary
+        asyncio.create_task(regenerate_event_summary(event.id))
 
     from app.services.related_articles import compute_related_articles
     asyncio.create_task(compute_related_articles(article_id))

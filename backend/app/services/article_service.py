@@ -235,6 +235,8 @@ def _schedule_fulltext(article_id: UUID) -> None:
 async def get_article_detail(
     db: AsyncSession, article_id: UUID, user_id: UUID
 ) -> ArticleDetail | None:
+    from sqlalchemy.orm import selectinload
+
     result = await db.execute(
         select(Article, Feed.title.label("feed_title"), ArticleUserState)
         .join(Feed, Article.feed_id == Feed.id)
@@ -246,6 +248,7 @@ async def get_article_detail(
             ),
         )
         .where(Article.id == article_id)
+        .options(selectinload(Article.event))
     )
     row = result.first()
     if row is None:
@@ -289,6 +292,8 @@ async def get_article_detail(
         fulltext_loading=fulltext_loading,
         fulltext_fetched_at=article.fulltext_fetched_at,
         tags_source=article.tags_source,
+        event_id=article.event_id,
+        event_source_count=article.event.source_count if article.event else None,
     )
 
 

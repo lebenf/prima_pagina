@@ -29,16 +29,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { articlesApi } from '@/api/articles'
+import { eventsApi } from '@/api/events'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  articleId: string
+const props = withDefaults(defineProps<{
+  targetId: string
+  target?: 'article' | 'event'
   initialVote?: number
   compact?: boolean
-}>()
+}>(), {
+  target: 'article',
+})
 
 const emit = defineEmits<{
-  'vote-changed': [vote: number, articleId: string]
+  'vote-changed': [vote: number, targetId: string]
 }>()
 
 const { t } = useI18n()
@@ -53,13 +57,15 @@ async function handleVote(vote: 1 | -1) {
   isLoading.value = true
   currentVote.value = newVote
 
+  const api = props.target === 'event' ? eventsApi : articlesApi
+
   try {
     if (newVote === 0) {
-      await articlesApi.removeVote(props.articleId)
+      await api.removeVote(props.targetId)
     } else {
-      await articlesApi.vote(props.articleId, newVote)
+      await api.vote(props.targetId, newVote)
     }
-    emit('vote-changed', newVote, props.articleId)
+    emit('vote-changed', newVote, props.targetId)
   } catch {
     currentVote.value = previousVote
   } finally {

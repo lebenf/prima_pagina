@@ -11,10 +11,9 @@ from app.models.article import Article
 from app.models.article_vote import ArticleVote
 from app.models.user_topic_preference import UserTopicPreference
 from app.schemas.vote import VoteResponse
+from app.services.topic_preference_service import apply_topic_preference_delta
 
 VOTE_DELTA = 0.5
-SCORE_MIN = -5.0
-SCORE_MAX = +5.0
 
 
 async def cast_vote(
@@ -39,7 +38,7 @@ async def cast_vote(
         db.add(ArticleVote(user_id=user_id, article_id=article_id, vote=vote))
 
     delta = (vote - old_vote) * VOTE_DELTA
-    await _update_topic_prefs(db, user_id, tags, delta)
+    await apply_topic_preference_delta(db, user_id, tags, delta)
     await db.commit()
 
     return VoteResponse(article_id=article_id, vote=vote, topic_scores_updated=tags)
@@ -60,30 +59,10 @@ async def remove_vote(
     old_vote = existing.vote
 
     await db.delete(existing)
-    await _update_topic_prefs(db, user_id, tags, -old_vote * VOTE_DELTA)
+    await apply_topic_preference_delta(db, user_id, tags, -old_vote * VOTE_DELTA)
     await db.commit()
 
     return VoteResponse(article_id=article_id, vote=0, topic_scores_updated=tags)
-
-
-async def _update_topic_prefs(
-    db: AsyncSession,
-    user_id: UUID,
-    tags: list[str],
-    delta: float,
-) -> None:
-    for tag in tags:
-        pref = await db.get(UserTopicPreference, (user_id, tag))
-        if pref:
-            pref.score = max(SCORE_MIN, min(SCORE_MAX, pref.score + delta))
-            pref.vote_count += 1
-        else:
-            db.add(UserTopicPreference(
-                user_id=user_id,
-                tag=tag,
-                score=max(SCORE_MIN, min(SCORE_MAX, delta)),
-                vote_count=1,
-            ))
 
 
 async def get_user_vote(db: AsyncSession, user_id: UUID, article_id: UUID) -> int:

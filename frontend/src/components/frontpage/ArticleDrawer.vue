@@ -17,7 +17,8 @@
             <div class="drawer-actions">
               <VoteButtons
                 v-if="article"
-                :article-id="article.id"
+                target="article"
+                :target-id="article.id"
                 :initial-vote="article.user_vote ?? 0"
                 :compact="false"
                 @vote-changed="onVoteChanged"
@@ -64,6 +65,15 @@
                 @reported="onFulltextReported"
               />
             </div>
+
+            <RouterLink
+              v-if="article.event_id && (article.event_source_count ?? 0) > 1"
+              :to="{ name: 'event', params: { id: article.event_id } }"
+              class="event-banner"
+              @click="close"
+            >
+              {{ t('article.partOfEvent', { count: article.event_source_count }) }}
+            </RouterLink>
 
             <h1 class="article-title">{{ article.title }}</h1>
 
@@ -323,6 +333,21 @@ onUnmounted(() => {
 }
 .separator {
   color: #d1d5db;
+}
+.event-banner {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  text-decoration: none;
+}
+.event-banner:hover {
+  background: #dbeafe;
 }
 .article-title {
   font-family: Georgia, 'Times New Roman', serif;

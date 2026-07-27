@@ -17,10 +17,7 @@ def make_config(**kwargs) -> LLMConfig:
         provider="ollama",
         model_name=kwargs.get("model_name", "llama3.2"),
         endpoint_url=kwargs.get("endpoint_url", "http://localhost:11434"),
-        use_for=["tagging", "digest"],
-        is_default=True,
         is_active=True,
-        priority=0,
     )
     return cfg
 

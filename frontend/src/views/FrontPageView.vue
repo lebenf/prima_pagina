@@ -48,21 +48,21 @@
 
       <!-- Hero + second row -->
       <section class="top-section mb-4">
-        <HeroArticle
+        <EventCard
           v-if="store.data.hero"
-          :article="store.data.hero"
-          @click="openArticle(store.data.hero!)"
-          @toggle-star="toggleStar(store.data.hero!)"
-          @mark-read="markRead(store.data.hero!)"
+          size="hero"
+          :event="store.data.hero"
+          @click="openEvent(store.data.hero!)"
           @vote-changed="onVoteChanged"
         />
 
         <div v-if="store.data.second_row.length" class="second-row mt-4">
-          <SecondRowArticle
-            v-for="article in store.data.second_row"
-            :key="article.id"
-            :article="article"
-            @click="openArticle(article)"
+          <EventCard
+            v-for="event in store.data.second_row"
+            :key="event.id"
+            size="row"
+            :event="event"
+            @click="openEvent(event)"
             @vote-changed="onVoteChanged"
           />
         </div>
@@ -76,7 +76,7 @@
           v-for="col in store.data.columns"
           :key="col.category_slug"
           :column="col"
-          @article-click="openArticle"
+          @event-click="openEvent"
           @vote-changed="onVoteChanged"
         />
       </section>
@@ -102,41 +102,26 @@
       @close="digestModalOpen = false"
     />
 
-    <!-- Article drawer -->
-    <ArticleDrawer
-      :article-id="openArticleId"
-      @close="closeDrawer"
-      @vote-changed="onVoteChanged"
-    />
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute, RouterLink } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { useFrontPageStore } from '@/stores/frontpage'
-import { articlesApi, type Article } from '@/api/articles'
+import type { Event } from '@/api/events'
 import DigestBanner from '@/components/frontpage/DigestBanner.vue'
 import DigestModal from '@/components/frontpage/DigestModal.vue'
 import FrontPageSkeleton from '@/components/frontpage/FrontPageSkeleton.vue'
-import HeroArticle from '@/components/frontpage/HeroArticle.vue'
-import SecondRowArticle from '@/components/frontpage/SecondRowArticle.vue'
+import EventCard from '@/components/frontpage/EventCard.vue'
 import CategoryColumn from '@/components/frontpage/CategoryColumn.vue'
-import ArticleDrawer from '@/components/frontpage/ArticleDrawer.vue'
 import '@/assets/newspaper.css'
 
 const store = useFrontPageStore()
 const { t, locale } = useI18n()
 const router = useRouter()
-const route = useRoute()
 const digestModalOpen = ref(false)
-
-// URL is single source of truth for drawer state
-const openArticleId = computed(() =>
-  route.query.article ? (route.query.article as string) : null
-)
 
 onMounted(async () => {
   await store.load(locale.value)
@@ -147,37 +132,17 @@ onUnmounted(() => {
   store.stopAutoRefresh()
 })
 
-function openArticle(article: Article) {
-  router.replace({ query: { ...route.query, article: article.id } })
+function openEvent(event: Event) {
+  router.push({ name: 'event', params: { id: event.id } })
 }
 
-function closeDrawer() {
-  const { article: _, ...rest } = route.query
-  router.replace({ query: rest })
-}
-
-function onVoteChanged(vote: number, articleId: string) {
-  const update = (a: Article | null | undefined) => {
-    if (a?.id === articleId) a.user_vote = vote
+function onVoteChanged(vote: number, eventId: string) {
+  const update = (e: Event | null | undefined) => {
+    if (e?.id === eventId) e.user_vote = vote
   }
   update(store.data?.hero)
   store.data?.second_row.forEach(update)
-  store.data?.columns.forEach(col => col.articles.forEach(update))
-}
-
-async function markRead(article: Article) {
-  await articlesApi.updateState(article.id, { is_read: true })
-  if (store.data?.hero?.id === article.id && store.data.hero) {
-    store.data.hero.is_read = true
-  }
-}
-
-async function toggleStar(article: Article) {
-  const newState = !article.is_starred
-  await articlesApi.updateState(article.id, { is_starred: newState })
-  if (store.data?.hero?.id === article.id && store.data.hero) {
-    store.data.hero.is_starred = newState
-  }
+  store.data?.columns.forEach(col => col.events.forEach(update))
 }
 
 async function handleGenerateDigest() {

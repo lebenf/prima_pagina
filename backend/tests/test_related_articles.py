@@ -16,6 +16,7 @@ from app.services.related_articles import (
     MAX_RELATED,
     _find_candidates,
     _find_related,
+    _select_related_with_llm,
     compute_related_articles,
 )
 
@@ -354,6 +355,43 @@ async def test_get_related_preserves_order(user_client, db_session, subscribed_f
     assert resp.status_code == 200
     ids = [item["id"] for item in resp.json()]
     assert ids == [str(r1.id), str(r2.id)]
+
+
+# ---------------------------------------------------------------------------
+# Regression: _select_related_with_llm must use the provider abstraction
+# (generate_text), not type-sniff via hasattr(provider, '_client') — that
+# bypassed the LLMProvider interface and would have silently mis-routed
+# a Mistral provider into the raw-httpx/Ollama branch.
+# ---------------------------------------------------------------------------
+
+
+async def test_select_related_with_llm_calls_generate_text(main_article, feed_b, feed_c):
+    c1 = _article(feed_b.id, tags=["ai"], title="C1")
+    c2 = _article(feed_c.id, tags=["ai"], title="C2")
+    candidates = [c1, c2]
+
+    mock_provider = AsyncMock()
+    mock_provider.generate_text = AsyncMock(return_value="[1, 2]")
+
+    result = await _select_related_with_llm(mock_provider, main_article, candidates)
+
+    mock_provider.generate_text.assert_awaited_once()
+    call_args = mock_provider.generate_text.call_args
+    assert call_args.kwargs.get("max_tokens") == 100
+    assert str(c1.id) in result
+    assert str(c2.id) in result
+
+
+async def test_select_related_with_llm_no_provider_internals_accessed(main_article, feed_b):
+    """A minimal provider exposing only generate_text (no _client, no base_url) must work fine."""
+    c1 = _article(feed_b.id, tags=["ai"], title="C1")
+
+    class MinimalProvider:
+        async def generate_text(self, prompt, max_tokens=500):
+            return "[1]"
+
+    result = await _select_related_with_llm(MinimalProvider(), main_article, [c1])
+    assert result == [str(c1.id)]
 
 
 async def test_get_related_includes_user_state(user_client, db_session, subscribed_feed_for_user, feed_b, regular_user):

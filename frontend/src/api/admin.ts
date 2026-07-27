@@ -114,15 +114,12 @@ export interface CategoryCreate {
 // ── LLM Config ──────────────────────────────────────────────
 export interface LLMConfig {
   id: string
-  provider: 'ollama' | 'claude'
+  provider: 'ollama' | 'claude' | 'mistral'
   label: string | null
   model_name: string
   endpoint_url: string | null
   has_api_key: boolean
-  use_for: string[]
-  is_default: boolean
   is_active: boolean
-  priority: number
   timeout_sec: number
   max_concurrent: number
   tagging_language: string
@@ -130,18 +127,29 @@ export interface LLMConfig {
 }
 
 export interface LLMConfigCreate {
-  provider: 'ollama' | 'claude'
+  provider: 'ollama' | 'claude' | 'mistral'
   label?: string
   model_name: string
   endpoint_url?: string
   api_key?: string
-  use_for: string[]
-  is_default: boolean
   is_active: boolean
-  priority: number
   timeout_sec: number
   max_concurrent: number
   tagging_language: string
+}
+
+// ── LLM Function Assignments ─────────────────────────────────
+export type LLMFunctionName = 'tagging' | 'event_summary' | 'extraction_script' | 'related_articles' | 'digest'
+
+export interface LLMFunctionAssignment {
+  function: LLMFunctionName
+  primary_config_id: string | null
+  fallback_config_id: string | null
+}
+
+export interface LLMFunctionAssignmentUpdate {
+  primary_config_id: string | null
+  fallback_config_id: string | null
 }
 
 // ── Plugin ──────────────────────────────────────────────────
@@ -206,6 +214,12 @@ export const adminApi = {
     delete: (id: string) => client.delete(`/admin/llm-configs/${id}`),
     healthCheck: (id: string) =>
       client.post<{ ok: boolean; latency_ms: number; error: string | null }>(`/admin/llm-configs/${id}/health-check`),
+  },
+
+  llmFunctions: {
+    list: () => client.get<LLMFunctionAssignment[]>('/admin/llm-functions'),
+    update: (fn: string, data: LLMFunctionAssignmentUpdate) =>
+      client.put<LLMFunctionAssignment>(`/admin/llm-functions/${fn}`, data),
   },
 
   plugins: {

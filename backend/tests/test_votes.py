@@ -11,9 +11,8 @@ from app.models.article_vote import ArticleVote
 from app.models.feed import Feed
 from app.models.user_feed import UserFeed
 from app.models.user_topic_preference import UserTopicPreference
+from app.services.topic_preference_service import SCORE_MAX, SCORE_MIN
 from app.services.vote_service import (
-    SCORE_MAX,
-    SCORE_MIN,
     VOTE_DELTA,
     cast_vote,
     get_topic_preferences,

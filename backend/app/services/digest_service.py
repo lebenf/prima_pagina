@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.models.article import Article, FulltextStatus
 from app.models.digest import Digest
 from app.models.feed import Feed
+from app.models.llm_function_assignment import LLMFunction
 from app.models.user import User
 from app.models.user_feed import UserFeed
 from app.schemas.digest import DigestGenerateOptions
@@ -50,7 +51,7 @@ async def generate_digest(
         provider = llm_router._build_provider(config, get_settings().encryption_key)
     else:
         from app.config import get_settings
-        provider = await llm_router.get_provider_for("digest", db, get_settings().encryption_key)
+        provider = await llm_router.get_provider_for(LLMFunction.DIGEST, db, get_settings().encryption_key)
 
     if not provider:
         raise DigestError("no_provider", "Nessun provider LLM configurato per la generazione digest")
