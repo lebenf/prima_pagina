@@ -130,6 +130,32 @@ async def test_search_basic(user_client, articles):
     assert any("python" in (item["title"] or "").lower() for item in data["items"])
 
 
+async def test_search_results_chronological_order(user_client, db_session, subscribed_feed):
+    """Regression: results must be strictly published_at-descending, regardless
+    of whether the match is in the title (higher relevance) or only the
+    excerpt (lower relevance) — an older title-match must NOT outrank a newer
+    excerpt-only match."""
+    old_title_match = _art(
+        subscribed_feed.id, title="widget factory news", excerpt="unrelated",
+        offset_hours=100,
+    )
+    mid_excerpt_match = _art(
+        subscribed_feed.id, title="something else", excerpt="a widget was found",
+        offset_hours=50,
+    )
+    new_title_match = _art(
+        subscribed_feed.id, title="widget update", excerpt="unrelated",
+        offset_hours=1,
+    )
+    db_session.add_all([old_title_match, mid_excerpt_match, new_title_match])
+    await db_session.commit()
+
+    resp = await user_client.get("/api/v1/search?q=widget")
+    assert resp.status_code == 200
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert ids == [str(new_title_match.id), str(mid_excerpt_match.id), str(old_title_match.id)]
+
+
 async def test_search_only_subscribed(user_client, articles, unsubscribed_articles):
     resp = await user_client.get("/api/v1/search?q=python")
     assert resp.status_code == 200

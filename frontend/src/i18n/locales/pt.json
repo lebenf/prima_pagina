@@ -8,7 +8,8 @@
     "feeds": "Feeds",
     "toggleMenu": "Mostrar/ocultar menu",
     "expand": "Expandir barra lateral",
-    "collapse": "Recolher barra lateral"
+    "collapse": "Recolher barra lateral",
+    "events": "Eventos"
   },
   "auth": {
     "login": "Entrar",
@@ -51,7 +52,9 @@
     "partOfEvent": "Coberto por {count} fontes — Abrir evento"
   },
   "events": {
-    "sourceCount": "{count} fontes"
+    "sourceCount": "{count} fontes",
+    "title": "Eventos",
+    "noEvents": "Nenhum evento detetado"
   },
   "feed": {
     "subscribe": "Subscrever",

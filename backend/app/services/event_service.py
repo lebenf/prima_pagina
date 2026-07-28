@@ -4,11 +4,12 @@
 article_service.get_frontpage_articles, but scoring/grouping Events instead
 of Articles. Layout stays server-driven (hero / second_row / columns), which
 the frontend consumes as-is."""
+import math
 from collections import defaultdict
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -17,7 +18,13 @@ from app.models.article_user_state import ArticleUserState
 from app.models.event import Event
 from app.models.feed import Feed
 from app.schemas.article import ArticleListItem
-from app.schemas.event import EventDetail, EventFrontPageColumn, EventFrontPageResponse, EventListItem
+from app.schemas.event import (
+    EventDetail,
+    EventFrontPageColumn,
+    EventFrontPageResponse,
+    EventListItem,
+    EventListResponse,
+)
 from app.services.article_service import _build_list_item
 from app.services.event_vote_service import load_user_event_votes_bulk
 from app.services.ranking import compute_category_affinity, event_score, topic_weight
@@ -42,6 +49,44 @@ def _build_event_list_item(event: Event, lang: str, user_vote: int) -> EventList
         opened_at=event.opened_at,
         last_activity_at=event.last_activity_at,
         user_vote=user_vote,
+    )
+
+
+async def list_events(
+    db: AsyncSession,
+    user_id: UUID,
+    lang: str,
+    page: int = 1,
+    size: int = 20,
+    category_id: UUID | None = None,
+    status: str | None = None,
+) -> EventListResponse:
+    """Full chronological listing of all events (no 48h cutoff, no bucketing) —
+    used by the "Eventi" nav section, as opposed to get_frontpage_events'
+    curated hero/second_row/columns subset."""
+    base = select(Event).options(selectinload(Event.category))
+    if category_id:
+        base = base.where(Event.category_id == category_id)
+    if status:
+        base = base.where(Event.status == status)
+
+    total = (await db.scalar(select(func.count()).select_from(base.subquery()))) or 0
+
+    paged = (
+        base.order_by(Event.last_activity_at.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+    events = list((await db.execute(paged)).scalars().all())
+
+    votes = await load_user_event_votes_bulk(db, user_id, [e.id for e in events])
+    items = [_build_event_list_item(e, lang, votes.get(e.id, 0)) for e in events]
+
+    return EventListResponse(
+        items=items,
+        total=total,
+        page=page,
+        pages=max(math.ceil(total / size), 1),
     )
 
 

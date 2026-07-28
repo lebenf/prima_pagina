@@ -44,6 +44,13 @@ class EventFrontPageResponse(BaseModel):
     digest_id: UUID | None = None
 
 
+class EventListResponse(BaseModel):
+    items: list[EventListItem]
+    total: int
+    page: int
+    pages: int
+
+
 class EventVoteResponse(BaseModel):
     event_id: UUID
     vote: int

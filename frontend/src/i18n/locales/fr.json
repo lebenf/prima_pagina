@@ -8,7 +8,8 @@
     "feeds": "Flux",
     "toggleMenu": "Afficher/masquer le menu",
     "expand": "Développer la barre latérale",
-    "collapse": "Réduire la barre latérale"
+    "collapse": "Réduire la barre latérale",
+    "events": "Événements"
   },
   "auth": {
     "login": "Se connecter",
@@ -51,7 +52,9 @@
     "partOfEvent": "Couvert par {count} sources — Ouvrir l'événement"
   },
   "events": {
-    "sourceCount": "{count} sources"
+    "sourceCount": "{count} sources",
+    "title": "Événements",
+    "noEvents": "Aucun événement détecté"
   },
   "feed": {
     "subscribe": "S'abonner",

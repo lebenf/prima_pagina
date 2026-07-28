@@ -74,6 +74,86 @@ async def event_with_article(db_session, feed, category):
 
 
 # ---------------------------------------------------------------------------
+# GET /events (flat paginated chronological list)
+# ---------------------------------------------------------------------------
+
+
+async def test_list_events_empty(user_client):
+    resp = await user_client.get("/api/v1/events")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["items"] == []
+    assert data["total"] == 0
+    assert data["page"] == 1
+    assert data["pages"] == 1
+
+
+async def test_list_events_chronological_order(user_client, db_session, category):
+    older = _make_event(category_id=category.id, title="Older")
+    older.last_activity_at = datetime.utcnow() - timedelta(hours=5)
+    newer = _make_event(category_id=category.id, title="Newer")
+    newer.last_activity_at = datetime.utcnow() - timedelta(minutes=10)
+    db_session.add_all([older, newer])
+    await db_session.commit()
+
+    resp = await user_client.get("/api/v1/events")
+    assert resp.status_code == 200
+    titles = [item["title"] for item in resp.json()["items"]]
+    assert titles == ["Newer", "Older"]
+
+
+async def test_list_events_pagination(user_client, db_session, category):
+    for i in range(3):
+        event = _make_event(category_id=category.id, title=f"Event {i}")
+        event.last_activity_at = datetime.utcnow() - timedelta(minutes=i)
+        db_session.add(event)
+    await db_session.commit()
+
+    resp = await user_client.get("/api/v1/events", params={"page": 1, "size": 2})
+    data = resp.json()
+    assert len(data["items"]) == 2
+    assert data["total"] == 3
+    assert data["page"] == 1
+    assert data["pages"] == 2
+
+    resp2 = await user_client.get("/api/v1/events", params={"page": 2, "size": 2})
+    assert len(resp2.json()["items"]) == 1
+
+
+async def test_list_events_filters_by_category(user_client, db_session, category):
+    from app.models.category import Category
+    other_category = Category(slug="other-cat", name={"it": "Altro", "en": "Other"})
+    db_session.add(other_category)
+    await db_session.flush()
+
+    matching = _make_event(category_id=category.id, title="Matching")
+    other = _make_event(category_id=other_category.id, title="Other")
+    db_session.add_all([matching, other])
+    await db_session.commit()
+
+    resp = await user_client.get("/api/v1/events", params={"category_id": str(category.id)})
+    titles = [item["title"] for item in resp.json()["items"]]
+    assert titles == ["Matching"]
+
+
+async def test_list_events_filters_by_status(user_client, db_session, category):
+    open_event = _make_event(category_id=category.id, title="Open one")
+    closed_event = _make_event(category_id=category.id, title="Closed one")
+    closed_event.status = EventStatus.CLOSED.value
+    db_session.add_all([open_event, closed_event])
+    await db_session.commit()
+
+    resp = await user_client.get("/api/v1/events", params={"status": "closed"})
+    titles = [item["title"] for item in resp.json()["items"]]
+    assert titles == ["Closed one"]
+
+
+async def test_list_events_requires_auth(client):
+    resp = await client.get("/api/v1/events")
+    assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
 # GET /events/frontpage
 # ---------------------------------------------------------------------------
 

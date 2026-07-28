@@ -56,21 +56,32 @@ useReaderKeyboard(articlesStore, () => {
   if (mobile.value) mobilePanel.value = 'list'
 })
 
+async function applyArticleFromQuery() {
+  const articleId = route.query.article as string | undefined
+  if (!articleId || articleId === articlesStore.selectedArticleId) return
+  try {
+    const res = await articlesApi.get(articleId)
+    articlesStore.selectArticle(res.data)
+    if (mobile.value) mobilePanel.value = 'reader'
+  } catch {
+    // article not found or unauthorized — ignore
+  }
+}
+
 onMounted(async () => {
   await feedsStore.loadSubscribed()
-  await articlesStore.loadForFeed(null)
-
-  const articleId = route.query.article as string | undefined
-  if (articleId) {
-    try {
-      const res = await articlesApi.get(articleId)
-      articlesStore.selectArticle(res.data)
-      if (mobile.value) mobilePanel.value = 'reader'
-    } catch {
-      // article not found or unauthorized — ignore
-    }
-  }
+  await articlesStore.loadForFeed(null)   // resets selectedArticleId first
+  await applyArticleFromQuery()            // then applies ?article= if present — sequential, no race
 })
+
+// Only fires for CHANGES after mount (e.g. a second SearchModal click while
+// already in Reader) — Vue Router reuses this component instance across
+// reader-family navigations, so onMounted does not re-fire. onMounted above
+// already handled the initial value, so this is deliberately not
+// `immediate: true` (that would race loadForFeed's async reset of
+// selectedArticleId, since an immediate watcher fires during setup, before
+// onMounted).
+watch(() => route.query.article, applyArticleFromQuery)
 
 // When user selects a feed, reload articles
 watch(

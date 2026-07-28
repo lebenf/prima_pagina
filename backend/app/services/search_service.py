@@ -4,7 +4,7 @@ import math
 import re
 from uuid import UUID
 
-from sqlalchemy import Integer, and_, func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -51,10 +51,8 @@ async def search_articles(
 
     if db_dialect == "postgresql":
         search_condition = _pg_search_condition(q)
-        order_clause = _pg_relevance_order(q)
     else:
         search_condition = _sqlite_search_condition(q)
-        order_clause = _sqlite_relevance_order(q)
 
     count_stmt = select(func.count()).select_from(
         base_stmt.where(search_condition).subquery()
@@ -64,7 +62,7 @@ async def search_articles(
     result_stmt = (
         base_stmt
         .where(search_condition)
-        .order_by(order_clause, Article.published_at.desc())
+        .order_by(Article.published_at.desc())
         .offset((filters.page - 1) * filters.size)
         .limit(filters.size)
     )
@@ -97,11 +95,6 @@ def _sqlite_search_condition(q: str):
     )
 
 
-def _sqlite_relevance_order(q: str):
-    title_match = func.lower(Article.title).contains(q).cast(Integer)
-    return title_match.desc()
-
-
 # ── PostgreSQL ────────────────────────────────────────────────────────────
 
 
@@ -112,15 +105,6 @@ def _pg_search_condition(q: str):
         func.coalesce(Article.title, "") + " " + func.coalesce(Article.content_excerpt, ""),
     )
     return ts_vector.op("@@")(ts_query)
-
-
-def _pg_relevance_order(q: str):
-    ts_query = func.plainto_tsquery("simple", q)
-    ts_vector = func.to_tsvector(
-        "simple",
-        func.coalesce(Article.title, "") + " " + func.coalesce(Article.content_excerpt, ""),
-    )
-    return func.ts_rank(ts_vector, ts_query).desc()
 
 
 # ── Highlighting ──────────────────────────────────────────────────────────

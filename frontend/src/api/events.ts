@@ -37,9 +37,19 @@ export interface EventFrontPageResponse {
   digest_id: string | null
 }
 
+export interface EventListResponse {
+  items: Event[]
+  total: number
+  page: number
+  pages: number
+}
+
 export const eventsApi = {
   frontpage: (lang?: string) =>
     client.get<EventFrontPageResponse>('/events/frontpage', { params: { lang } }),
+
+  list: (params: { page?: number; size?: number; category_id?: string; status?: string; lang?: string } = {}) =>
+    client.get<EventListResponse>('/events', { params }),
 
   get: (id: string) =>
     client.get<EventDetail>(`/events/${id}`),

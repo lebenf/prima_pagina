@@ -8,7 +8,8 @@
     "feeds": "Feeds",
     "toggleMenu": "Menü ein-/ausblenden",
     "expand": "Seitenleiste erweitern",
-    "collapse": "Seitenleiste reduzieren"
+    "collapse": "Seitenleiste reduzieren",
+    "events": "Ereignisse"
   },
   "auth": {
     "login": "Anmelden",
@@ -51,7 +52,9 @@
     "partOfEvent": "Von {count} Quellen berichtet — Ereignis öffnen"
   },
   "events": {
-    "sourceCount": "{count} Quellen"
+    "sourceCount": "{count} Quellen",
+    "title": "Ereignisse",
+    "noEvents": "Keine Ereignisse erkannt"
   },
   "feed": {
     "subscribe": "Abonnieren",

@@ -46,6 +46,9 @@
 - `GET /api/v1/events/{id}` — dettaglio evento con lista membri; `GET /api/v1/events/{id}/articles`
 - Correzioni editoriali admin: `POST /admin/events/{id}/merge` (unisce due eventi, elimina la sorgente), `POST /admin/events/{id}/detach/{article_id}` (scorpora un articolo in un nuovo evento singolo), `POST /admin/events/{id}/regenerate-summary` (forza la rigenerazione LLM)
 - Nessun backfill retroattivo: gli articoli pre-esistenti al deploy restano senza evento
+- **Sezione "Eventi" nel menu**: elenco completo e paginato di tutti gli eventi rilevati, in ordine cronologico (`last_activity_at` decrescente) — distinto dalla vista Prima Pagina, che mostra solo il sottoinsieme curato (hero/seconda riga/colonne, finestra 48h)
+- `GET /api/v1/events` — lista paginata (`page`/`size`/`total`/`pages`), filtri opzionali `category_id` e `status`; nessun bucketing, nessun cutoff temporale
+- Voce di navigazione "Eventi" nella sidebar desktop e nella barra mobile, accanto a Prima Pagina e Reader
 
 ## Voti articoli ed eventi (pollice su/giù)
 - Voto +1 / -1 per articolo o per evento; aggiornabile e rimovibile; stessa logica di aggiornamento preferenze condivisa (`apply_topic_preference_delta`)
@@ -70,10 +73,12 @@
 
 ## Ricerca full-text globale (T18)
 - `GET /api/v1/search?q=...` — ricerca su titolo + excerpt degli articoli dei feed sottoscritti
-- SQLite: LIKE case-insensitive con `func.lower().contains()`; PostgreSQL: `to_tsvector` + `plainto_tsquery` + `ts_rank`
+- SQLite: LIKE case-insensitive con `func.lower().contains()`; PostgreSQL: `to_tsvector` + `plainto_tsquery`
+- Risultati ordinati per `published_at` decrescente (cronologico, non per rilevanza) — coerente con ogni altra lista dell'app
 - `title_highlighted` e `excerpt_snippet` con `<mark>` attorno ai match, snippet con contesto ±80 caratteri
 - Filtri: `feed_id`, `category_id`, `date_from`, `date_to`; paginazione standard `page`/`size`/`total`/`pages`
 - `Ctrl+K` / `⌘K` globale apre SearchModal; `Esc` chiude; frecce ↑↓ navigano risultati; `Enter` apre articolo nel Reader
+- Click/Enter su un risultato apre l'articolo nel Reader (`?article={id}`); il Reader reagisce ai cambi di query anche restando montato (click successivi su risultati diversi mentre si è già nel Reader aggiornano correttamente l'articolo mostrato)
 - Debounce 300ms, focus automatico sull'input, reset selezione al cambio risultati
 - Bottone ricerca in AppHeader (visibile su desktop) sostituisce input disabilitato
 - CSS globale `mark { background: #fef08a }` per evidenziazione uniforme

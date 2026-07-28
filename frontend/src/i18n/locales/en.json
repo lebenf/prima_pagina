@@ -8,7 +8,8 @@
     "feeds": "Feeds",
     "toggleMenu": "Toggle menu",
     "expand": "Expand sidebar",
-    "collapse": "Collapse sidebar"
+    "collapse": "Collapse sidebar",
+    "events": "Events"
   },
   "auth": {
     "login": "Log in",
@@ -51,7 +52,9 @@
     "partOfEvent": "Covered by {count} sources — Open event"
   },
   "events": {
-    "sourceCount": "{count} sources"
+    "sourceCount": "{count} sources",
+    "title": "Events",
+    "noEvents": "No events detected"
   },
   "feed": {
     "subscribe": "Subscribe",
