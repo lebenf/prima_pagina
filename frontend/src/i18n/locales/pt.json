@@ -9,7 +9,8 @@
     "toggleMenu": "Mostrar/ocultar menu",
     "expand": "Expandir barra lateral",
     "collapse": "Recolher barra lateral",
-    "events": "Eventos"
+    "events": "Eventos",
+    "digests": "Resumos"
   },
   "auth": {
     "login": "Entrar",

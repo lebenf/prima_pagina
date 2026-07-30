@@ -97,7 +97,7 @@ docker compose --profile ollama up
 
 **Authentication**: Session-based (not JWT). Sessions stored in DB (`sessions` table); session UUID is the `pp_session` cookie value (`HttpOnly`, `SameSite=Lax`). CSRF via double-submit cookie (`X-CSRF-Token` header required for POST/PUT/DELETE/PATCH).
 
-**Scheduler**: APScheduler runs in-process with the FastAPI app. Feed polling jobs fire per-feed at `fetch_interval_min` intervals; digest generation is a cron job (default `0 7 * * *`).
+**Scheduler**: APScheduler runs in-process with the FastAPI app. Feed polling jobs fire per-feed at `fetch_interval_min` intervals; digest generation is a cron job (default `0 5 * * *`), skipping users who already have a digest generated within `digest_dedupe_hours` (default 2h).
 
 **LLM abstraction**: `services/llm/base.py` defines an abstract `LLMProvider`. Concrete implementations in `ollama.py` and `claude.py`. Provider selection is driven by `LLMConfig` records in DB (`use_for` JSONB field distinguishes tagging vs. digest providers). API keys encrypted at rest with Fernet; key stored in `ENCRYPTION_KEY` env var.
 
@@ -126,7 +126,8 @@ ALLOWED_ORIGINS=http://localhost:5173
 OLLAMA_ENDPOINT=http://ollama:11434
 ANTHROPIC_API_KEY=
 FEED_DEFAULT_INTERVAL_MIN=60
-DIGEST_CRON=0 7 * * *
+DIGEST_CRON=0 5 * * *
+DIGEST_DEDUPE_HOURS=2
 APP_ENV=development
 LOG_LEVEL=INFO
 ```

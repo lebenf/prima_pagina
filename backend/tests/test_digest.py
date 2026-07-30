@@ -385,6 +385,7 @@ async def test_scheduled_job_skips_existing(db_session, regular_user):
         return MagicMock()
 
     async def fake_get_recent(db, user_id, hours=20):
+        assert hours == 2  # dedupe window driven by settings.digest_dedupe_hours
         if user_id == regular_user.id:
             return recent
         return None
@@ -425,6 +426,49 @@ async def test_scheduled_job_continues_on_error(db_session, regular_user, admin_
         from app.services.scheduler import _digest_generation_job
         # Should not raise even if individual users fail
         await _digest_generation_job()
+
+
+async def test_scheduled_job_uses_configured_dedupe_window(db_session, regular_user, monkeypatch):
+    """Job reads the dedupe window from settings.digest_dedupe_hours, not a hardcoded value."""
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "digest_dedupe_hours", 5)
+
+    seen_hours = []
+
+    async def fake_get_recent(db, user_id, hours=20):
+        seen_hours.append(hours)
+        return None
+
+    async def fake_generate(db, user, options):
+        return MagicMock()
+
+    with (
+        patch("app.database.AsyncSessionLocal") as mock_sl,
+        patch("app.services.digest_service.generate_digest", side_effect=fake_generate),
+        patch("app.services.digest_service.get_recent_digest", side_effect=fake_get_recent),
+    ):
+        mock_sl.return_value.__aenter__ = AsyncMock(return_value=db_session)
+        mock_sl.return_value.__aexit__ = AsyncMock(return_value=False)
+
+        from app.services.scheduler import _digest_generation_job
+        await _digest_generation_job()
+
+    assert seen_hours and all(h == 5 for h in seen_hours)
+
+
+def test_digest_cron_default_is_5am():
+    """Default digest_cron resolves to a daily 5:00 trigger."""
+    from apscheduler.triggers.cron import CronTrigger
+
+    from app.config import get_settings
+
+    settings = get_settings()
+    trigger = CronTrigger.from_crontab(settings.digest_cron)
+    hour_field = next(f for f in trigger.fields if f.name == "hour")
+    minute_field = next(f for f in trigger.fields if f.name == "minute")
+    assert str(hour_field) == "5"
+    assert str(minute_field) == "0"
 
 
 async def test_max_concurrent_fulltext_downloads(db_session, regular_user, subscribed_feed):

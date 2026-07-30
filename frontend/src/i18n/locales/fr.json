@@ -9,7 +9,8 @@
     "toggleMenu": "Afficher/masquer le menu",
     "expand": "Développer la barre latérale",
     "collapse": "Réduire la barre latérale",
-    "events": "Événements"
+    "events": "Événements",
+    "digests": "Revues de presse"
   },
   "auth": {
     "login": "Se connecter",

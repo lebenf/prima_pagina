@@ -23,6 +23,14 @@
       <span>{{ t('nav.events') }}</span>
     </RouterLink>
 
+    <RouterLink :to="{ name: 'digests' }" class="tab" active-class="active">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M4 4h13a2 2 0 012 2v13a2 2 0 002 2H6a2 2 0 01-2-2V4z" />
+        <path d="M8 8h6M8 12h9M8 16h9" />
+      </svg>
+      <span>{{ t('nav.digests') }}</span>
+    </RouterLink>
+
     <!-- Search FAB -->
     <button class="fab" :aria-label="t('search.openSearch')" @click="searchStore.open()">
       <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">

@@ -9,7 +9,8 @@
     "toggleMenu": "Toggle menu",
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
-    "events": "Events"
+    "events": "Events",
+    "digests": "Digests"
   },
   "auth": {
     "login": "Log in",

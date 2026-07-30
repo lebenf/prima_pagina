@@ -37,6 +37,19 @@
       </svg>
       <span v-if="!collapsed" class="nav-label">{{ t('nav.events') }}</span>
     </RouterLink>
+
+    <RouterLink
+      :to="{ name: 'digests' }"
+      class="nav-item"
+      :class="{ collapsed }"
+      active-class="active"
+    >
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M4 4h13a2 2 0 012 2v13a2 2 0 002 2H6a2 2 0 01-2-2V4z" />
+        <path d="M8 8h6M8 12h9M8 16h9" />
+      </svg>
+      <span v-if="!collapsed" class="nav-label">{{ t('nav.digests') }}</span>
+    </RouterLink>
   </nav>
 </template>
 

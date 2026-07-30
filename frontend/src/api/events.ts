@@ -33,8 +33,6 @@ export interface EventFrontPageResponse {
   hero: Event | null
   second_row: Event[]
   columns: EventFrontPageColumn[]
-  digest_available: boolean
-  digest_id: string | null
 }
 
 export interface EventListResponse {

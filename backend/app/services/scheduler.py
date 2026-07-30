@@ -37,10 +37,13 @@ async def _digest_generation_job() -> None:
     from sqlalchemy import select
 
     # Lazy imports keep startup fast; also allows patching in tests
+    from app.config import get_settings
     from app.database import AsyncSessionLocal
     from app.models.user import User
     from app.schemas.digest import DigestGenerateOptions
     from app.services.digest_service import DigestError, generate_digest, get_recent_digest
+
+    settings = get_settings()
 
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).where(User.is_active == True))  # noqa: E712
@@ -48,7 +51,7 @@ async def _digest_generation_job() -> None:
 
         for user in users:
             try:
-                recent = await get_recent_digest(db, user.id, hours=20)
+                recent = await get_recent_digest(db, user.id, hours=settings.digest_dedupe_hours)
                 if recent:
                     logger.debug("skipping digest for %s: recent digest exists", user.username)
                     continue

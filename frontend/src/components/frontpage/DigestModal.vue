@@ -21,21 +21,10 @@
           >×</button>
         </div>
 
-        <!-- Error state -->
-        <div v-if="digest?.status === 'failed'" class="modal-body overflow-y-auto flex-1 p-6">
-          <div class="error-section">
-            <p class="error-heading">⚠️ {{ t('digest.generationFailed') }}</p>
-            <p v-if="digest.generation_error" class="error-detail">{{ digest.generation_error }}</p>
-            <p class="error-hint">{{ t('digest.generationFailedHint') }}</p>
-          </div>
-        </div>
-
         <!-- Content — server-sanitized HTML -->
-        <div
-          v-else
-          class="modal-body overflow-y-auto flex-1 p-6 prose prose-sm max-w-none"
-          v-html="digest?.content_html || ''"
-        />
+        <div class="modal-body overflow-y-auto flex-1 p-6">
+          <DigestContent v-if="digest" :digest="digest" />
+        </div>
       </div>
     </div>
   </teleport>
@@ -45,6 +34,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Digest } from '@/api/digest'
+import DigestContent from '@/components/digest/DigestContent.vue'
 
 defineProps<{ digest: Digest | null }>()
 defineEmits<{ close: [] }>()
@@ -53,65 +43,3 @@ const { t } = useI18n()
 onMounted(() => { document.body.style.overflow = 'hidden' })
 onUnmounted(() => { document.body.style.overflow = '' })
 </script>
-
-<style scoped>
-/* Digest content typography */
-.modal-body :deep(h2) {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-.modal-body :deep(h3) {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
-.modal-body :deep(p) {
-  margin-bottom: 0.75rem;
-  line-height: 1.6;
-  color: #374151;
-}
-.modal-body :deep(a) {
-  color: #1d4ed8;
-  text-decoration: underline;
-}
-.modal-body :deep(blockquote) {
-  border-left: 3px solid #d1d5db;
-  padding-left: 1rem;
-  color: #6b7280;
-  font-style: italic;
-  margin: 0.75rem 0;
-}
-.modal-body :deep(article) {
-  border-top: 1px solid #f3f4f6;
-  padding-top: 1rem;
-  margin-top: 1rem;
-}
-.error-section {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  border-radius: 6px;
-  padding: 1.25rem 1.5rem;
-}
-.error-heading {
-  font-weight: 700;
-  color: #dc2626;
-  margin-bottom: 0.5rem;
-}
-.error-detail {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0.75rem;
-  font-family: monospace;
-  word-break: break-all;
-}
-.error-hint {
-  font-size: 0.875rem;
-  color: #9ca3af;
-}
-</style>

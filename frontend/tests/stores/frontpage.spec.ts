@@ -30,8 +30,6 @@ const mockFrontPageData = {
   },
   second_row: [],
   columns: [],
-  digest_available: false,
-  digest_id: null,
 }
 
 const mockDigest = {
@@ -66,18 +64,6 @@ describe('frontpage store', () => {
     expect(store.isLoading).toBe(false)
   })
 
-  it('load fetches digest when digest_available', async () => {
-    const dataWithDigest = { ...mockFrontPageData, digest_available: true, digest_id: 'd1' }
-    vi.mocked(eventsApi.frontpage).mockResolvedValueOnce({ data: dataWithDigest } as any)
-    vi.mocked(digestApi.get).mockResolvedValueOnce({ data: mockDigest } as any)
-
-    const store = useFrontPageStore()
-    await store.load('it')
-
-    expect(digestApi.get).toHaveBeenCalledWith('d1')
-    expect(store.digest?.id).toBe('d1')
-  })
-
   it('load sets error on failure', async () => {
     vi.mocked(eventsApi.frontpage).mockRejectedValueOnce({ response: { data: { detail: 'Server error' } } })
 
@@ -100,7 +86,6 @@ describe('frontpage store', () => {
     expect(store.digest?.id).toBe('d1')
     expect(store.digestDismissed).toBe(false)
     expect(store.isGeneratingDigest).toBe(false)
-    expect(store.data?.digest_available).toBe(true)
   })
 
   it('dismissDigest hides banner', () => {

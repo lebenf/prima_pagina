@@ -54,6 +54,16 @@ const router = createRouter({
           component: () => import('@/views/EventView.vue'),
         },
         {
+          path: 'digests',
+          name: 'digests',
+          component: () => import('@/views/DigestsListView.vue'),
+        },
+        {
+          path: 'digests/:id',
+          name: 'digest',
+          component: () => import('@/views/DigestView.vue'),
+        },
+        {
           path: 'feeds',
           name: 'feeds',
           component: () => import('@/views/FeedsView.vue'),

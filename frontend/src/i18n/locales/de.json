@@ -9,7 +9,8 @@
     "toggleMenu": "Menü ein-/ausblenden",
     "expand": "Seitenleiste erweitern",
     "collapse": "Seitenleiste reduzieren",
-    "events": "Ereignisse"
+    "events": "Ereignisse",
+    "digests": "Presseschauen"
   },
   "auth": {
     "login": "Anmelden",

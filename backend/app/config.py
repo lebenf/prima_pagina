@@ -37,7 +37,8 @@ class Settings(BaseSettings):
 
     # Scheduler
     feed_default_interval_min: int = 60
-    digest_cron: str = "0 7 * * *"
+    digest_cron: str = "0 5 * * *"
+    digest_dedupe_hours: int = 2
 
     # Events
     event_clustering_window_hours: int = 72

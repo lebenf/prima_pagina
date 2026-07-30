@@ -15,8 +15,6 @@ interface FrontPageData {
   hero: Event | null
   second_row: Event[]
   columns: FrontPageColumn[]
-  digest_available: boolean
-  digest_id: string | null
 }
 
 export const useFrontPageStore = defineStore('frontpage', () => {
@@ -37,23 +35,10 @@ export const useFrontPageStore = defineStore('frontpage', () => {
       const res = await eventsApi.frontpage(lang)
       data.value = res.data
       lastUpdated.value = new Date()
-
-      if (res.data.digest_available && res.data.digest_id) {
-        await loadDigest(res.data.digest_id)
-      }
     } catch (e: any) {
       error.value = e.response?.data?.detail || 'Errore nel caricamento'
     } finally {
       isLoading.value = false
-    }
-  }
-
-  async function loadDigest(id: string) {
-    try {
-      const res = await digestApi.get(id)
-      digest.value = res.data
-    } catch {
-      // digest non critico: ignora errori
     }
   }
 
@@ -63,10 +48,6 @@ export const useFrontPageStore = defineStore('frontpage', () => {
       const res = await digestApi.generate({ max_articles: 30, force_fulltext: true })
       digest.value = res.data
       digestDismissed.value = false
-      if (data.value) {
-        data.value.digest_available = true
-        data.value.digest_id = res.data.id
-      }
     } finally {
       isGeneratingDigest.value = false
     }
@@ -100,7 +81,6 @@ export const useFrontPageStore = defineStore('frontpage', () => {
     error,
     showDigest,
     load,
-    loadDigest,
     generateDigest,
     dismissDigest,
     startAutoRefresh,

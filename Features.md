@@ -111,13 +111,14 @@
 - Riepilogo LLM e articoli correlati memorizzati una volta per articolo (condivisi tra utenti)
 
 ## Digest (rassegna stampa)
-- Generazione on-demand o schedulata (cron configurabile, default `0 7 * * *`)
+- Generazione on-demand o schedulata (cron configurabile, default `0 5 * * *`), con articoli delle ultime 24h
+- Generazione schedulata saltata per utente se esiste già un digest generato nelle ultime `DIGEST_DEDUPE_HOURS` ore (default 2h)
 - Provider LLM selezionabile: Ollama (self-hosted) o Claude (Anthropic API)
 - Output HTML strutturato con sezioni tematiche
 - Timeout configurabile per provider (default 300s)
-- Storico digest con lista e dettaglio
+- Storico digest: voce dedicata "Rassegne" in sidebar, lista paginata (infinite scroll) e vista dettaglio per rileggere digest passati, con eliminazione
 - Gestione errori: digest falliti persistiti con `status = "failed"` e `generation_error` (messaggio LLM/timeout)
-- UI: banner rosso con messaggio errore e bottone "Riprova" per digest falliti; modale mostra dettaglio errore e hint
+- UI: banner rosso con messaggio errore e bottone "Riprova" per digest falliti; modale (Front Page) e vista dettaglio (storico) mostrano lo stesso rendering del contenuto/errore
 
 ## Feed virtuali
 - Creazione di feed filtrati per categoria, tag o combinazione
