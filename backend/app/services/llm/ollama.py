@@ -70,7 +70,9 @@ class OllamaProvider(LLMProvider):
             f"Write a professional press digest in {lang_name} for {period_label}.\n\n"
             f"Articles:\n{articles_text}\n\n"
             f"{style_hints}\n\n"
-            "Format: HTML with <h2> for sections, <article> per story."
+            "Format: HTML with <h2> for sections, <article> per story. "
+            "Reply with the HTML only — no introduction, no explanation, no markdown "
+            "code fences, start directly with the markup."
         )
         try:
             async with httpx.AsyncClient(timeout=float(self.timeout_sec)) as client:
@@ -84,7 +86,8 @@ class OllamaProvider(LLMProvider):
                     },
                 )
                 response.raise_for_status()
-            content_html = response.json()["response"]
+            raw = response.json()["response"]
+            content_html = self._clean_html_response(raw)
             content_text = re.sub(r"<[^>]+>", " ", content_html).strip()
             title = f"Rassegna stampa — {period_label}"
             return DigestResult(

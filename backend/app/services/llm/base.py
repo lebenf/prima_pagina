@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -106,6 +107,19 @@ Rules:
 - language: ISO 639-1 code of the article (it, en, fr, de, es, pt)
 - confidence: classification confidence 0.0-1.0
 """
+
+    @staticmethod
+    def _clean_html_response(raw: str) -> str:
+        """Strip markdown code fences and chat-style preamble/trailing prose that
+        some models add before/after the requested HTML despite instructions not to."""
+        text = raw.strip()
+        fence = re.search(r"```(?:html)?\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
+        if fence:
+            text = fence.group(1).strip()
+        tag_start = text.find("<")
+        if tag_start > 0:
+            text = text[tag_start:]
+        return text
 
     @staticmethod
     def _parse_tagging_json(raw: str) -> TaggingResult:

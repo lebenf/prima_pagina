@@ -122,3 +122,35 @@ async def test_custom_endpoint():
 async def test_no_api_key_resolves_to_empty_string():
     provider = MistralProvider(make_config(has_api_key=False), encryption_key=ENCRYPTION_KEY)
     assert provider.api_key == ""
+
+
+@respx.mock
+async def test_generate_digest_strips_chat_preamble():
+    raw = (
+        "Ecco un **press digest professionale** in italiano per le date "
+        "30-31 luglio 2026, strutturato in HTML con sezioni tematiche.\n\n"
+        "```html\n<h2>Italia</h2><article><h3>Titolo</h3><p>Riassunto</p></article>\n```"
+    )
+    respx.post(CHAT_URL).mock(return_value=httpx.Response(200, json=_chat_response(raw)))
+    provider = MistralProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    result = await provider.generate_digest(
+        [{"source": "Test", "title": "Titolo", "excerpt": "Excerpt"}],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert result.content_html.startswith("<h2>Italia</h2>")
+    assert "Ecco un" not in result.content_html
+    assert "```" not in result.content_html
+
+
+@respx.mock
+async def test_generate_digest_no_fence_still_strips_preamble():
+    raw = "Certo, ecco la rassegna richiesta:\n<h2>Italia</h2><p>Testo</p>"
+    respx.post(CHAT_URL).mock(return_value=httpx.Response(200, json=_chat_response(raw)))
+    provider = MistralProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    result = await provider.generate_digest(
+        [{"source": "Test", "title": "Titolo", "excerpt": "Excerpt"}],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert result.content_html == "<h2>Italia</h2><p>Testo</p>"

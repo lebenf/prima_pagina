@@ -93,10 +93,13 @@ class MistralProvider(LLMProvider):
             f"Write a professional press digest in {lang_name} for {period_label}.\n\n"
             f"Articles:\n{articles_text}\n\n"
             f"{style_hints}\n\n"
-            "Format: HTML with <h2> for sections, <article> per story."
+            "Format: HTML with <h2> for sections, <article> per story. "
+            "Reply with the HTML only — no introduction, no explanation, no markdown "
+            "code fences, start directly with the markup."
         )
         try:
-            content_html = await self._chat_complete(prompt, max_tokens=4000)
+            raw = await self._chat_complete(prompt, max_tokens=4000)
+            content_html = self._clean_html_response(raw)
             content_text = re.sub(r"<[^>]+>", " ", content_html).strip()
             title = f"Rassegna stampa — {period_label}"
             return DigestResult(

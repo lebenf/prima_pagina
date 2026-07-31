@@ -77,7 +77,9 @@ class ClaudeProvider(LLMProvider):
             f"Articles:\n{articles_text}\n\n"
             "Output HTML with <h2> per thematic section, <article> per story "
             "(<h3> title, <p> summary ≤150 words, <cite> source+link). "
-            "Add a 2-3 sentence introduction."
+            "Add a 2-3 sentence introduction inside the HTML. "
+            "Reply with the HTML only — no preamble, no explanation, no markdown "
+            "code fences, start directly with the markup."
         )
         try:
             message = await self._client.messages.create(
@@ -86,7 +88,7 @@ class ClaudeProvider(LLMProvider):
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}],
             )
-            content_html = message.content[0].text
+            content_html = self._clean_html_response(message.content[0].text)
             content_text = self._html_to_text(content_html)
             title = self._extract_title(content_html, period_label)
             return DigestResult(
