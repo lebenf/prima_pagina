@@ -22,7 +22,7 @@ async def get_frontpage(
     current_user: User = Depends(get_current_user),
 ):
     effective_lang = lang or current_user.preferred_lang or "it"
-    return await event_service.get_frontpage_events(db, current_user.id, effective_lang)
+    return await event_service.get_frontpage_events_cached(db, current_user.id, effective_lang)
 
 
 @router.get("", response_model=EventListResponse)

@@ -37,7 +37,7 @@ async def get_frontpage(
     current_user: User = Depends(get_current_user),
 ):
     effective_lang = lang or current_user.preferred_lang or "it"
-    return await article_service.get_frontpage_articles(db, current_user.id, effective_lang)
+    return await article_service.get_frontpage_articles_cached(db, current_user.id, effective_lang)
 
 
 @router.get("", response_model=ArticleListResponse)

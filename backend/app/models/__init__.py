@@ -19,6 +19,7 @@ from app.models.article_vote import ArticleVote
 from app.models.user_topic_preference import UserTopicPreference
 from app.models.feed_extraction_script import FeedExtractionScript
 from app.models.user_invitation import UserInvitation
+from app.models.frontpage_cache import FrontPageCache
 
 __all__ = [
     "User", "Session", "Category", "Feed", "UserFeed",
@@ -26,5 +27,5 @@ __all__ = [
     "Event", "EventStatus", "TitleSource", "EventVote",
     "LLMConfig", "LLMFunction", "LLMFunctionAssignment", "VirtualFeed", "FilterType", "Digest", "PluginConfig",
     "ArticleLLMData", "ArticleVote", "UserTopicPreference", "FeedExtractionScript",
-    "UserInvitation",
+    "UserInvitation", "FrontPageCache",
 ]

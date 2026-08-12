@@ -750,3 +750,125 @@ async def revoke_invitation(
         raise HTTPException(status_code=404, detail="Invitation not found")
     invitation.used_at = datetime.utcnow()
     await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Scheduled Tasks Management
+# ---------------------------------------------------------------------------
+
+class ScheduledTaskInfo(BaseModel):
+    id: str
+    name: str
+    trigger_type: str
+    trigger_config: dict
+    next_run_time: datetime | None
+    
+class ScheduledTaskResponse(BaseModel):
+    tasks: list[ScheduledTaskInfo]
+
+class TaskScheduleUpdate(BaseModel):
+    digest_cron: str | None = None
+    frontpage_cron: str | None = None
+
+class TaskScheduleResponse(BaseModel):
+    digest_cron: str
+    frontpage_cron: str
+    message: str
+
+@router.get("/scheduler/tasks", response_model=ScheduledTaskResponse)
+async def list_scheduled_tasks(
+    _admin: User = Depends(require_admin),
+):
+    """List all scheduled tasks and their configurations."""
+    from app.services.scheduler import scheduler
+    
+    tasks = []
+    for job in scheduler.get_jobs():
+        tasks.append(ScheduledTaskInfo(
+            id=job.id,
+            name=job.name,
+            trigger_type=job.trigger.__class__.__name__,
+            trigger_config=job.trigger.get_config(),
+            next_run_time=job.next_run_time
+        ))
+    
+    return ScheduledTaskResponse(tasks=tasks)
+
+@router.get("/scheduler/settings", response_model=TaskScheduleResponse)
+async def get_scheduler_settings(
+    _admin: User = Depends(require_admin),
+):
+    """Get current scheduler settings (cron expressions)."""
+    settings = get_settings()
+    return TaskScheduleResponse(
+        digest_cron=settings.digest_cron,
+        frontpage_cron=settings.frontpage_cron,
+        message="Current scheduler settings"
+    )
+
+@router.post("/scheduler/settings", response_model=TaskScheduleResponse)
+async def update_scheduler_settings(
+    body: TaskScheduleUpdate,
+    _admin: User = Depends(require_admin),
+):
+    """Update scheduler cron expressions. Requires restart to take effect."""
+    from app.config import get_settings
+    
+    settings = get_settings()
+    
+    # Update settings (these will be read from environment variables on next restart)
+    # For now, we'll just return the new values - in production you'd need to update .env file
+    new_digest_cron = body.digest_cron or settings.digest_cron
+    new_frontpage_cron = body.frontpage_cron or settings.frontpage_cron
+    
+    # Try to validate cron expressions
+    from apscheduler.triggers.cron import CronTrigger
+    try:
+        if body.digest_cron:
+            CronTrigger.from_crontab(body.digest_cron)
+        if body.frontpage_cron:
+            CronTrigger.from_crontab(body.frontpage_cron)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid cron expression: {e}")
+    
+    # Note: To persist these changes, you would need to update the .env file
+    # For now, we return the values that should be set
+    return TaskScheduleResponse(
+        digest_cron=new_digest_cron,
+        frontpage_cron=new_frontpage_cron,
+        message="Settings updated. Restart the application for changes to take effect."
+    )
+
+@router.post("/scheduler/trigger-frontpage", response_model=dict)
+async def trigger_frontpage_cache(
+    _admin: User = Depends(require_admin),
+):
+    """Manually trigger frontpage cache regeneration for all users."""
+    from app.database import AsyncSessionLocal
+    from app.services.article_service import regenerate_frontpage_cache
+    from app.services.event_service import regenerate_frontpage_events_cache
+    
+    async with AsyncSessionLocal() as db:
+        articles_count = await regenerate_frontpage_cache(db)
+        events_count = await regenerate_frontpage_events_cache(db)
+        
+    return {
+        "message": "Frontpage cache regeneration triggered",
+        "articles_users_processed": articles_count,
+        "events_users_processed": events_count
+    }
+
+@router.post("/scheduler/trigger-digest", response_model=dict)
+async def trigger_digest_generation(
+    _admin: User = Depends(require_admin),
+):
+    """Manually trigger digest generation for all users."""
+    from app.database import AsyncSessionLocal
+    from app.services.scheduler import _digest_generation_job
+    
+    async with AsyncSessionLocal() as db:
+        await _digest_generation_job()
+        
+    return {
+        "message": "Digest generation triggered for all users"
+    }

@@ -27,6 +27,7 @@
       <AdminCategories v-else-if="activeTab === 'categories'" />
       <AdminLLMConfigs v-else-if="activeTab === 'llm'" />
       <AdminPlugins v-else-if="activeTab === 'plugins'" />
+      <AdminScheduler v-else-if="activeTab === 'scheduler'" />
     </div>
   </div>
 </template>
@@ -42,6 +43,7 @@ import AdminFeeds from '@/components/admin/AdminFeeds.vue'
 import AdminCategories from '@/components/admin/AdminCategories.vue'
 import AdminLLMConfigs from '@/components/admin/AdminLLMConfigs.vue'
 import AdminPlugins from '@/components/admin/AdminPlugins.vue'
+import AdminScheduler from '@/components/admin/AdminScheduler.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -59,6 +61,7 @@ const tabs = [
   { id: 'categories', icon: '🏷️', labelKey: 'admin.tabs.categories' },
   { id: 'llm',        icon: '🤖', labelKey: 'admin.tabs.llm' },
   { id: 'plugins',    icon: '🔔', labelKey: 'admin.tabs.plugins' },
+  { id: 'scheduler',  icon: '⏰', labelKey: 'admin.tabs.scheduler' },
 ]
 
 const activeTab = ref('users')

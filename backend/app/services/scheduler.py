@@ -31,6 +31,18 @@ async def _cleanup_sessions_job() -> None:
         logger.info("scheduler: cleaned up %d expired/revoked sessions", count)
 
 
+async def _frontpage_cache_job() -> None:
+    from app.database import AsyncSessionLocal
+    from app.services.article_service import regenerate_frontpage_cache
+    from app.services.event_service import regenerate_frontpage_events_cache
+
+    async with AsyncSessionLocal() as db:
+        articles_count = await regenerate_frontpage_cache(db)
+        events_count = await regenerate_frontpage_events_cache(db)
+        logger.info("scheduler: regenerated frontpage cache for %d articles users and %d events users", 
+                   articles_count, events_count)
+
+
 async def _digest_generation_job() -> None:
     from datetime import datetime, timedelta
 
@@ -107,6 +119,14 @@ def setup_scheduler() -> AsyncIOScheduler:
         _digest_generation_job,
         trigger=CronTrigger.from_crontab(settings.digest_cron),
         id="digest_generation",
+        replace_existing=True,
+        max_instances=1,
+    )
+
+    scheduler.add_job(
+        _frontpage_cache_job,
+        trigger=CronTrigger.from_crontab(settings.frontpage_cron),
+        id="frontpage_cache",
         replace_existing=True,
         max_instances=1,
     )

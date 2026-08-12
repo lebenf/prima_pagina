@@ -90,6 +90,53 @@ async def list_events(
     )
 
 
+async def _get_frontpage_events_cached(
+    db: AsyncSession, user_id: UUID | None = None, cache_type: str = "events"
+) -> "EventFrontPageCache | None":
+    from app.models.frontpage_cache import FrontPageCache
+    from sqlalchemy import select
+    
+    result = await db.execute(
+        select(FrontPageCache)
+        .where(FrontPageCache.user_id == user_id)
+        .where(FrontPageCache.cache_type == cache_type)
+        .where(FrontPageCache.is_valid == True)  # noqa: E712
+        .order_by(FrontPageCache.generated_at.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+async def _set_frontpage_events_cache(
+    db: AsyncSession,
+    user_id: UUID | None,
+    data: dict,
+    cache_type: str = "events"
+) -> None:
+    from app.models.frontpage_cache import FrontPageCache
+    from datetime import datetime
+    from sqlalchemy import update
+    
+    # Invalida la cache esistente per questo utente e tipo
+    await db.execute(
+        update(FrontPageCache)
+        .where(FrontPageCache.user_id == user_id)
+        .where(FrontPageCache.cache_type == cache_type)
+        .values(is_valid=False)
+    )
+    
+    # Crea nuova entry cache
+    new_cache = FrontPageCache(
+        user_id=user_id,
+        data=data,
+        generated_at=datetime.utcnow(),
+        is_valid=True,
+        cache_type=cache_type
+    )
+    db.add(new_cache)
+    await db.commit()
+
+
 async def get_frontpage_events(
     db: AsyncSession, user_id: UUID, lang: str, window_hours: int = 48
 ) -> EventFrontPageResponse:
@@ -229,3 +276,55 @@ async def get_event_articles(db: AsyncSession, event_id: UUID, user_id: UUID) ->
         return None
     detail = await get_event_detail(db, event_id, user_id, lang="it")
     return detail.articles if detail else []
+
+
+# ---------------------------------------------------------------------------
+# Frontpage Events Cache Management
+# ---------------------------------------------------------------------------
+
+async def get_frontpage_events_cached(
+    db: AsyncSession, user_id: UUID, lang: str, force_refresh: bool = False
+) -> EventFrontPageResponse:
+    """
+    Get frontpage events with caching support.
+    If force_refresh is True, bypass cache and regenerate.
+    """
+    # Check cache if not forcing refresh
+    if not force_refresh:
+        cached = await _get_frontpage_events_cached(db, user_id, "events")
+        if cached:
+            # Convert cached data back to EventFrontPageResponse
+            return EventFrontPageResponse(**cached.data)
+    
+    # Generate fresh frontpage
+    response = await get_frontpage_events(db, user_id, lang)
+    
+    # Cache the response
+    await _set_frontpage_events_cache(db, user_id, response.model_dump(), "events")
+    
+    return response
+
+
+async def regenerate_frontpage_events_cache(db: AsyncSession) -> int:
+    """
+    Regenerate frontpage events cache for all active users.
+    Returns count of users processed.
+    """
+    from sqlalchemy import select
+    from app.models.user import User
+    
+    result = await db.execute(select(User).where(User.is_active == True))  # noqa: E712
+    users = result.scalars().all()
+    
+    count = 0
+    for user in users:
+        try:
+            # Regenerate for each user (using default lang)
+            await get_frontpage_events_cached(db, user.id, user.preferred_lang or "it", force_refresh=True)
+            count += 1
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to regenerate frontpage events cache for user {user.id}: {e}")
+    
+    return count

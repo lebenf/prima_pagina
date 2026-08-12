@@ -481,3 +481,105 @@ async def get_frontpage_articles(
         digest_available=False,
         digest_id=None,
     )
+
+
+# ---------------------------------------------------------------------------
+# Frontpage Cache Management
+# ---------------------------------------------------------------------------
+
+async def _get_frontpage_cache(
+    db: AsyncSession, user_id: UUID | None = None, cache_type: str = "articles"
+) -> "FrontPageCache | None":
+    from app.models.frontpage_cache import FrontPageCache
+    from sqlalchemy import select
+    
+    result = await db.execute(
+        select(FrontPageCache)
+        .where(FrontPageCache.user_id == user_id)
+        .where(FrontPageCache.cache_type == cache_type)
+        .where(FrontPageCache.is_valid == True)  # noqa: E712
+        .order_by(FrontPageCache.generated_at.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+async def _set_frontpage_cache(
+    db: AsyncSession,
+    user_id: UUID | None,
+    data: dict,
+    cache_type: str = "articles"
+) -> None:
+    from app.models.frontpage_cache import FrontPageCache
+    from datetime import datetime
+    
+    # Invalida la cache esistente per questo utente e tipo
+    await db.execute(
+        update(FrontPageCache)
+        .where(FrontPageCache.user_id == user_id)
+        .where(FrontPageCache.cache_type == cache_type)
+        .values(is_valid=False)
+    )
+    
+    # Crea nuova entry cache
+    new_cache = FrontPageCache(
+        user_id=user_id,
+        data=data,
+        generated_at=datetime.utcnow(),
+        is_valid=True,
+        cache_type=cache_type
+    )
+    db.add(new_cache)
+    await db.commit()
+
+
+async def get_frontpage_articles_cached(
+    db: AsyncSession, user_id: UUID, lang: str, force_refresh: bool = False
+) -> FrontPageResponse:
+    """
+    Get frontpage articles with caching support.
+    If force_refresh is True, bypass cache and regenerate.
+    """
+    from app.config import get_settings
+    
+    settings = get_settings()
+    
+    # Check cache if not forcing refresh
+    if not force_refresh:
+        cached = await _get_frontpage_cache(db, user_id, "articles")
+        if cached:
+            # Convert cached data back to FrontPageResponse
+            return FrontPageResponse(**cached.data)
+    
+    # Generate fresh frontpage
+    response = await get_frontpage_articles(db, user_id, lang)
+    
+    # Cache the response
+    await _set_frontpage_cache(db, user_id, response.model_dump(), "articles")
+    
+    return response
+
+
+async def regenerate_frontpage_cache(db: AsyncSession) -> int:
+    """
+    Regenerate frontpage cache for all active users.
+    Returns count of users processed.
+    """
+    from sqlalchemy import select
+    from app.models.user import User
+    
+    result = await db.execute(select(User).where(User.is_active == True))  # noqa: E712
+    users = result.scalars().all()
+    
+    count = 0
+    for user in users:
+        try:
+            # Regenerate for each user (using default lang)
+            await get_frontpage_articles_cached(db, user.id, user.preferred_lang or "it", force_refresh=True)
+            count += 1
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to regenerate frontpage cache for user {user.id}: {e}")
+    
+    return count

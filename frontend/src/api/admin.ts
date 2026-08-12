@@ -244,4 +244,37 @@ export const adminApi = {
     get: (feedId: string) => client.get<ExtractionScript>(`/feeds/${feedId}/extraction-script`),
     regenerate: (feedId: string) => client.post(`/feeds/${feedId}/extraction-script/regenerate`),
   },
+
+  // ── Scheduler ─────────────────────────────────────────────────
+  scheduler: {
+    getSettings: () => client.get<TaskScheduleResponse>('/admin/scheduler/settings'),
+    updateSettings: (data: TaskScheduleUpdate) => client.post<TaskScheduleResponse>('/admin/scheduler/settings', data),
+    listTasks: () => client.get<ScheduledTaskResponse>('/admin/scheduler/tasks'),
+    triggerFrontpageCache: () => client.post<{ message: string }>('/admin/scheduler/trigger-frontpage'),
+    triggerDigestGeneration: () => client.post<{ message: string }>('/admin/scheduler/trigger-digest'),
+  },
+}
+
+// Scheduler types
+export interface ScheduledTaskInfo {
+  id: string
+  name: string
+  trigger_type: string
+  trigger_config: Record<string, any>
+  next_run_time: string | null
+}
+
+export interface ScheduledTaskResponse {
+  tasks: ScheduledTaskInfo[]
+}
+
+export interface TaskScheduleUpdate {
+  digest_cron?: string
+  frontpage_cron?: string
+}
+
+export interface TaskScheduleResponse {
+  digest_cron: string
+  frontpage_cron: string
+  message: string
 }

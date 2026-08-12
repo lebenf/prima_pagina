@@ -123,7 +123,8 @@
       "feeds": "Feed",
       "categories": "Categorie",
       "llm": "LLM",
-      "plugins": "Plugin"
+      "plugins": "Plugin",
+      "scheduler": "Scheduler"
     },
     "users": {
       "title": "Gestione Utenti",
@@ -220,6 +221,29 @@
       "deleteConfirm": "Eliminare il plugin {label}?",
       "globalScope": "Globale (tutti gli utenti)",
       "userScope": "Utente specifico"
+    },
+    "scheduler": {
+      "title": "Task Schedulati",
+      "currentSettings": "Impostazioni correnti",
+      "updateSettings": "Aggiorna impostazioni",
+      "digestCron": "Cron Digest",
+      "frontpageCron": "Cron Prima Pagina",
+      "cronFormatHint": "Formato: minuto ora giorno mese giorno_settimana (es: 0 5 * * * = ogni giorno alle 5:00)",
+      "scheduledTasks": "Task schedulati",
+      "nextRun": "Prossima esecuzione",
+      "never": "Mai",
+      "manualTriggers": "Esecuzione manuale",
+      "triggerFrontpage": "Aggiorna cache Prima Pagina",
+      "triggerDigest": "Genera Digest",
+      "failedToLoadSettings": "Impossibile caricare le impostazioni",
+      "failedToUpdateSettings": "Impossibile aggiornare le impostazioni",
+      "failedToTriggerFrontpage": "Impossibile aggiornare la cache della Prima Pagina",
+      "failedToTriggerDigest": "Impossibile generare il Digest",
+      "dailyAt5AM": "Ogni giorno alle 5:00",
+      "dailyAt7AM": "Ogni giorno alle 7:00",
+      "every2Hours": "Ogni 2 ore",
+      "everyXHours": "Ogni {hours} ore",
+      "customSchedule": "Programmazione personalizzata"
     }
   },
   "digest": {
