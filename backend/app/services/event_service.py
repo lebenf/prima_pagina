@@ -300,7 +300,7 @@ async def get_frontpage_events_cached(
     response = await get_frontpage_events(db, user_id, lang)
     
     # Cache the response
-    await _set_frontpage_events_cache(db, user_id, response.model_dump(), "events")
+    await _set_frontpage_events_cache(db, user_id, response.model_dump(mode="json"), "events")
     
     return response
 

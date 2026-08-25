@@ -555,7 +555,7 @@ async def get_frontpage_articles_cached(
     response = await get_frontpage_articles(db, user_id, lang)
     
     # Cache the response
-    await _set_frontpage_cache(db, user_id, response.model_dump(), "articles")
+    await _set_frontpage_cache(db, user_id, response.model_dump(mode="json"), "articles")
     
     return response
 
