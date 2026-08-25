@@ -134,7 +134,7 @@
 
 ## Routing LLM per funzione
 - Provider assegnabile indipendentemente per 5 funzioni: `tagging`, `event_summary`, `extraction_script`, `related_articles`, `digest`, ciascuna con provider primario e fallback opzionale
-- Tre provider supportati: Ollama (self-hosted), Claude (Anthropic), Mistral — stessa interfaccia astratta (`tag_article`, `generate_digest`, `generate_text`, `health_check`)
+- Quattro provider supportati: Ollama (self-hosted), Claude (Anthropic), Mistral, HostYourAI (gateway OpenAI-compatible multi-modello) — stessa interfaccia astratta (`tag_article`, `generate_digest`, `generate_text`, `health_check`)
 - In caso di errore del provider primario, uso automatico del fallback configurato (se presente) con warning in log; senza fallback l'errore si propaga
 - `GET`/`PUT /api/v1/admin/llm-functions` — le 5 funzioni sono sempre presenti nella risposta anche prima di essere configurate
 - Admin UI: tabella assegnazione funzioni con dropdown provider primario/fallback, salvataggio inline per riga
@@ -153,7 +153,7 @@
 - **Sessioni**: lista globale con filtro per utente, revoca singola, revoca tutte per utente
 - **Feed**: lista con filtro categoria e ricerca, colonna Fulltext con badge script (verde/arancio/rosso per success rate), modale dettaglio script con CSS selectors e bottone rigenerazione, iscrizione/disiscrizione inline, refresh, CRUD completo
 - **Categorie**: CRUD con nomi multilingua (it/en/fr/de/es/pt), raggruppamento per categoria nel reader
-- **Config LLM**: CRUD provider (Ollama/Claude/Mistral), health check con latenza, timeout configurabile (30–3600s); assegnazione provider per funzione in una tabella dedicata (v. "Routing LLM per funzione")
+- **Config LLM**: CRUD provider (Ollama/Claude/Mistral/HostYourAI), health check con latenza, timeout configurabile (30–3600s); assegnazione provider per funzione in una tabella dedicata (v. "Routing LLM per funzione")
 - **Plugin**: CRUD configurazioni plugin, test connessione inline, form dinamico guidato dallo schema
 
 ## Plugin notifiche

@@ -51,6 +51,7 @@ These only take effect on first startup if no admin user exists.
 |----------|---------|-------------|
 | `OLLAMA_ENDPOINT` | `http://localhost:11434` | Ollama server URL |
 | `ANTHROPIC_API_KEY` | _(empty)_ | API key for Anthropic Claude |
+| `HOSTYOURAI_API_KEY` | _(empty)_ | API key for HostYourAI (OpenAI-compatible) |
 
 ## Application
 

@@ -114,7 +114,7 @@ export interface CategoryCreate {
 // ── LLM Config ──────────────────────────────────────────────
 export interface LLMConfig {
   id: string
-  provider: 'ollama' | 'claude' | 'mistral'
+  provider: 'ollama' | 'claude' | 'mistral' | 'hostyourai'
   label: string | null
   model_name: string
   endpoint_url: string | null
@@ -127,7 +127,7 @@ export interface LLMConfig {
 }
 
 export interface LLMConfigCreate {
-  provider: 'ollama' | 'claude' | 'mistral'
+  provider: 'ollama' | 'claude' | 'mistral' | 'hostyourai'
   label?: string
   model_name: string
   endpoint_url?: string

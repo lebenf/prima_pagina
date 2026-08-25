@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class LLMConfigCreate(BaseModel):
-    provider: Literal["ollama", "claude", "mistral"]
+    provider: Literal["ollama", "claude", "mistral", "hostyourai"]
     label: str | None = None
     model_name: str
     endpoint_url: str | None = None

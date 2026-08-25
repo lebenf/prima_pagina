@@ -120,6 +120,15 @@ async def test_build_provider_mistral(db_session):
     assert isinstance(provider, MistralProvider)
 
 
+async def test_build_provider_hostyourai(db_session):
+    from app.services.llm.hostyourai import HostYourAIProvider
+
+    config = make_config(provider="hostyourai", model_name="qwen3.5-397b-a17b")
+    router = LLMRouter()
+    provider = router._build_provider(config, encryption_key="")
+    assert isinstance(provider, HostYourAIProvider)
+
+
 async def test_build_provider_unknown_raises():
     config = make_config(provider="unknown-provider")
     router = LLMRouter()

@@ -51,6 +51,9 @@ class LLMRouter:
         elif config.provider == "mistral":
             from app.services.llm.mistral import MistralProvider
             return MistralProvider(config, encryption_key=encryption_key)
+        elif config.provider == "hostyourai":
+            from app.services.llm.hostyourai import HostYourAIProvider
+            return HostYourAIProvider(config, encryption_key=encryption_key)
         else:
             raise ValueError(f"Unknown provider: {config.provider}")
 

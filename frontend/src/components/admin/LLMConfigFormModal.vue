@@ -15,6 +15,7 @@
               <option value="ollama">Ollama</option>
               <option value="claude">Claude (Anthropic)</option>
               <option value="mistral">Mistral</option>
+              <option value="hostyourai">HostYourAI</option>
             </select>
           </div>
 
@@ -37,6 +38,11 @@
                 <option value="mistral-large-latest" />
                 <option value="mistral-small-latest" />
               </template>
+              <template v-else-if="form.provider === 'hostyourai'">
+                <option value="qwen3.5-397b-a17b" />
+                <option value="mistral-small-3.2-24b" />
+                <option value="llama-3.3-70b" />
+              </template>
               <template v-else>
                 <option value="claude-opus-4-5" />
                 <option value="claude-sonnet-4-5" />
@@ -45,16 +51,16 @@
             </datalist>
           </div>
 
-          <div v-if="form.provider === 'ollama' || form.provider === 'mistral'" class="form-group">
+          <div v-if="form.provider === 'ollama' || form.provider === 'mistral' || form.provider === 'hostyourai'" class="form-group">
             <label>{{ t('admin.llm.endpoint') }}</label>
             <input
               v-model="form.endpoint_url"
               type="url"
-              :placeholder="form.provider === 'mistral' ? 'https://api.mistral.ai' : 'http://ollama:11434'"
+              :placeholder="form.provider === 'mistral' ? 'https://api.mistral.ai' : form.provider === 'hostyourai' ? 'https://hostyourai.com/api/v1' : 'http://ollama:11434'"
             />
           </div>
 
-          <div v-if="form.provider === 'claude' || form.provider === 'mistral'" class="form-group">
+          <div v-if="form.provider === 'claude' || form.provider === 'mistral' || form.provider === 'hostyourai'" class="form-group">
             <label>{{ t('admin.llm.apiKey') }}{{ isEdit ? ' (lascia vuoto per non cambiare)' : ' *' }}</label>
             <div class="input-with-toggle">
               <input

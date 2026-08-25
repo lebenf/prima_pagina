@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     # LLM
     ollama_endpoint: str = "http://localhost:11434"
     anthropic_api_key: str = ""
+    hostyourai_api_key: str = ""
 
     # Notifications
     app_base_url: str = "http://localhost:5173"
