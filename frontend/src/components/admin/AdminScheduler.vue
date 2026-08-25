@@ -127,8 +127,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { adminApi } from '@/api'
-import type { ScheduledTaskInfo, TaskScheduleResponse, TaskScheduleUpdate } from '@/api'
+import { adminApi } from '@/api/admin'
+import type { ScheduledTaskInfo, TaskScheduleResponse, TaskScheduleUpdate } from '@/api/admin'
 
 const { t } = useI18n()
 
