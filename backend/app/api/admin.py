@@ -455,15 +455,17 @@ async def merge_events(
     if not source or not target:
         raise HTTPException(status_code=404, detail="Event not found")
 
+    from app.services.event_clustering import _recompute_event_tags
+
     await db.execute(
         update(Article).where(Article.event_id == event_id).values(event_id=body.target_event_id)
     )
     await db.flush()
 
-    target.tags = sorted(set(target.tags or []) | set(source.tags or []))
     target.article_count += source.article_count
     if source.last_activity_at > target.last_activity_at:
         target.last_activity_at = source.last_activity_at
+    target.tags = await _recompute_event_tags(db, target.id, target.article_count)
 
     source_count_result = await db.execute(
         select(func.count(func.distinct(Article.feed_id))).where(Article.event_id == body.target_event_id)
@@ -513,12 +515,10 @@ async def detach_article(
     article.event_id = new_event.id
     article.event_role = "seed"
 
+    from app.services.event_clustering import _recompute_event_tags
+
     event.article_count = max(0, event.article_count - 1)
-    remaining_tags: set[str] = set()
-    remaining_result = await db.execute(select(Article.tags).where(Article.event_id == event_id))
-    for (tags,) in remaining_result:
-        remaining_tags |= set(tags or [])
-    event.tags = sorted(remaining_tags)
+    event.tags = await _recompute_event_tags(db, event.id, event.article_count)
 
     source_count_result = await db.execute(
         select(func.count(func.distinct(Article.feed_id))).where(Article.event_id == event_id)

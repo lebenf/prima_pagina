@@ -9,6 +9,8 @@ doubt, create a new event.
 """
 import json
 import logging
+import math
+from collections import Counter
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -24,11 +26,32 @@ logger = logging.getLogger(__name__)
 MAX_CANDIDATES = 10
 REGEN_EVERY_N_ARTICLES = 3
 
+# An event's tags are derived from its members, not accumulated forever: a tag
+# survives only if it covers this share of member articles, capped in size.
+# Without this, an event's tag-set is a monotonic union that never shrinks —
+# as it absorbs diverse articles it becomes an ever-more-generic superset,
+# attracting more unrelated articles (self-reinforcing merge).
+EVENT_TAG_MIN_SHARE = 0.3
+MAX_EVENT_TAGS = 12
+
+# Above this size, an event needs a strong tag-overlap ratio to keep absorbing
+# articles — stops a grab-bag event from growing via marginal/generic signals.
+EVENT_LARGE_SIZE_THRESHOLD = 8
+LARGE_EVENT_MIN_OVERLAP_RATIO = 0.5
+
 
 async def find_candidate_events(
     db: AsyncSession, article: Article, category_id: UUID | None
 ) -> list[Event]:
-    """Open events in the clustering window, same category, with tag overlap."""
+    """Open events in the clustering window, same category. Below
+    EVENT_LARGE_SIZE_THRESHOLD, any same-category event in the window is a
+    candidate regardless of tag overlap (the LLM match step, already biased
+    towards "null" on doubt, is the real filter) — this is what lets two
+    differently-tagged articles about the same real story still get merged.
+    At/above the threshold, an event needs a strong overlap ratio against its
+    own (already share-pruned) tags to remain eligible, so a grab-bag event
+    can't keep absorbing unrelated articles on weak/generic signals.
+    """
     cutoff = datetime.utcnow() - timedelta(hours=get_settings().event_clustering_window_hours)
 
     stmt = (
@@ -47,10 +70,31 @@ async def find_candidate_events(
     scored = []
     for event in events:
         overlap = len(article_tags & set(event.tags or []))
-        if overlap > 0:
-            scored.append((event, overlap))
+        if event.article_count >= EVENT_LARGE_SIZE_THRESHOLD:
+            if overlap / len(article_tags) < LARGE_EVENT_MIN_OVERLAP_RATIO:
+                continue
+        scored.append((event, overlap))
     scored.sort(key=lambda pair: pair[1], reverse=True)
     return [event for event, _ in scored[:MAX_CANDIDATES]]
+
+
+def _derive_event_tags(tag_counts: Counter, article_count: int) -> list[str]:
+    """Tags that cover at least EVENT_TAG_MIN_SHARE of member articles,
+    capped to MAX_EVENT_TAGS, most-common first."""
+    threshold = max(1, math.ceil(article_count * EVENT_TAG_MIN_SHARE))
+    kept = sorted(
+        ((tag, count) for tag, count in tag_counts.items() if count >= threshold),
+        key=lambda pair: (-pair[1], pair[0]),
+    )
+    return [tag for tag, _ in kept[:MAX_EVENT_TAGS]]
+
+
+async def _recompute_event_tags(db: AsyncSession, event_id: UUID, article_count: int) -> list[str]:
+    result = await db.execute(select(Article.tags).where(Article.event_id == event_id))
+    counts: Counter = Counter()
+    for (tags,) in result:
+        counts.update(tags or [])
+    return _derive_event_tags(counts, article_count)
 
 
 def _build_event_match_prompt(article: Article, candidates: list[Event]) -> str:
@@ -70,7 +114,8 @@ def _build_event_match_prompt(article: Article, candidates: list[Event]) -> str:
         "stessa conferenza stampa di un politico sono lo STESSO evento anche se scritti da "
         "fonti diverse con enfasi diversa.\n\n"
         f"Nuovo articolo:\nTitolo: {article.title or '(senza titolo)'}\n"
-        f"Tag: {', '.join(article.tags or [])}\n\n"
+        f"Tag: {', '.join(article.tags or [])}\n"
+        f"Estratto: {(article.content_excerpt or '')[:300]}\n\n"
         f"Eventi candidati:\n{candidates_text}\n\n"
         "Se nessun evento corrisponde con sicurezza, rispondi con event_index: null "
         "(creerà un nuovo evento). In caso di dubbio, preferisci null.\n\n"
@@ -127,7 +172,6 @@ async def attach_or_create_event(
 
         article.event_id = event.id
         article.event_role = "member"
-        event.tags = sorted(set(event.tags or []) | set(article.tags or []))
         event.article_count += 1
         if article.published_at and article.published_at > event.last_activity_at:
             event.last_activity_at = article.published_at
@@ -136,6 +180,7 @@ async def attach_or_create_event(
 
         await db.flush()
         event.source_count = await _recompute_source_count(db, event.id)
+        event.tags = await _recompute_event_tags(db, event.id, event.article_count)
 
         should_regenerate = is_new_source or event.article_count % REGEN_EVERY_N_ARTICLES == 0
         return event, should_regenerate

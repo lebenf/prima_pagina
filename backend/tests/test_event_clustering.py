@@ -7,10 +7,14 @@ from uuid import uuid4
 
 import pytest
 
+from collections import Counter
+
 from app.models.article import Article
 from app.models.event import Event, EventStatus, TitleSource
 from app.models.feed import Feed
 from app.services.event_clustering import (
+    EVENT_LARGE_SIZE_THRESHOLD,
+    _derive_event_tags,
     attach_or_create_event,
     close_stale_events,
     find_candidate_events,
@@ -83,14 +87,80 @@ async def test_no_candidates_when_no_open_events(db_session, feed_a, category_a)
     assert candidates == []
 
 
-async def test_candidate_requires_tag_overlap(db_session, feed_a, category_a):
+async def test_zero_overlap_still_candidate_below_large_threshold(db_session, feed_a, category_a):
+    """No tag overlap no longer excludes a small/medium event — the (already
+    conservative) LLM match step is the real filter, not tag overlap. This is
+    what lets two differently-tagged articles about the same real story still
+    get merged instead of spawning a duplicate event."""
     event = _make_event(category_id=category_a.id, tags=["sports", "football"])
     db_session.add(event)
     await db_session.commit()
+    await db_session.refresh(event)
 
     article = _make_article(feed_a.id, tags=["ai", "tech"])
     candidates = await find_candidate_events(db_session, article, category_a.id)
-    assert candidates == []
+    assert len(candidates) == 1
+    assert candidates[0].id == event.id
+
+
+async def test_large_event_excluded_when_weak_overlap_ratio(db_session, feed_a, category_a):
+    large_event = _make_event(
+        category_id=category_a.id, tags=["politica"], article_count=EVENT_LARGE_SIZE_THRESHOLD,
+    )
+    db_session.add(large_event)
+    await db_session.commit()
+    await db_session.refresh(large_event)
+
+    # 1 of 2 tags overlap -> ratio 0.5, at the threshold (>=): included
+    at_threshold = _make_article(feed_a.id, tags=["politica", "estero"])
+    candidates = await find_candidate_events(db_session, at_threshold, category_a.id)
+    assert len(candidates) == 1
+
+    # 1 of 3 tags overlap -> ratio 0.33, below threshold: excluded
+    below_threshold = _make_article(feed_a.id, tags=["politica", "estero", "sport"])
+    candidates2 = await find_candidate_events(db_session, below_threshold, category_a.id)
+    assert candidates2 == []
+
+
+async def test_large_event_included_with_strong_overlap_ratio(db_session, feed_a, category_a):
+    large_event = _make_event(
+        category_id=category_a.id, tags=["politica", "elezioni"],
+        article_count=EVENT_LARGE_SIZE_THRESHOLD,
+    )
+    db_session.add(large_event)
+    await db_session.commit()
+    await db_session.refresh(large_event)
+
+    article = _make_article(feed_a.id, tags=["politica", "elezioni"])
+    candidates = await find_candidate_events(db_session, article, category_a.id)
+    assert len(candidates) == 1
+    assert candidates[0].id == large_event.id
+
+
+# ---------------------------------------------------------------------------
+# _derive_event_tags
+# ---------------------------------------------------------------------------
+
+
+def test_derive_event_tags_prunes_one_off_tags_on_large_event():
+    counts = Counter({"politica": 27, "elezioni": 27, "superman": 1, "gaza": 1})
+    result = _derive_event_tags(counts, article_count=89)
+    assert "superman" not in result
+    assert "gaza" not in result
+    assert "politica" in result
+    assert "elezioni" in result
+
+
+def test_derive_event_tags_keeps_all_founding_tags_for_new_event():
+    counts = Counter({"ai": 1, "startup": 1})
+    result = _derive_event_tags(counts, article_count=1)
+    assert set(result) == {"ai", "startup"}
+
+
+def test_derive_event_tags_caps_at_max_size():
+    counts = Counter({f"tag{i}": 20 for i in range(20)})
+    result = _derive_event_tags(counts, article_count=20)
+    assert len(result) == 12
 
 
 async def test_candidate_matches_on_tag_overlap(db_session, feed_a, category_a):
@@ -235,6 +305,37 @@ async def test_source_count_reflects_distinct_feeds(db_session, feed_a, feed_b, 
 
     assert result_event.id == event.id
     assert result_event.source_count == 2
+
+
+async def test_attach_prunes_one_off_tag_after_several_members(db_session, feed_a, feed_b, category_a):
+    """A tag introduced by only one article among several members must not
+    survive in the event's derived `tags` — this is what stops a grab-bag
+    event from keeping generic/noise tags forever."""
+    feed_a.category_id = category_a.id
+    feed_b.category_id = category_a.id
+
+    seed = _make_article(feed_a.id, tags=["politica"])
+    db_session.add(seed)
+    await db_session.flush()
+    seed.feed = feed_a
+    event, _ = await attach_or_create_event(db_session, seed, provider=None)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    mock_provider = AsyncMock()
+    mock_provider.generate_text = AsyncMock(return_value='{"event_index": 1}')
+
+    for tags in (["politica"], ["politica"], ["politica", "superman"]):
+        art = _make_article(feed_b.id, tags=tags)
+        db_session.add(art)
+        await db_session.flush()
+        art.feed = feed_b
+        event, _ = await attach_or_create_event(db_session, art, provider=mock_provider)
+        await db_session.commit()
+        await db_session.refresh(event)
+
+    assert "politica" in event.tags
+    assert "superman" not in event.tags
 
 
 async def test_regen_not_triggered_on_third_article_same_source(db_session, feed_a, category_a):

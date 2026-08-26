@@ -3,13 +3,14 @@
 import asyncio
 import json
 import uuid
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from app.models.article import Article, TagsSource
 from app.models.category import Category
 from app.models.feed import Feed
+from app.models.llm_function_assignment import LLMFunction
 from app.services.llm.base import TaggingResult
 from app.services.llm.tagging import (
     _tag_article,
@@ -163,6 +164,63 @@ async def test_no_provider_configured(db_session, article):
 
     await db_session.refresh(article)
     assert article.tags_source == TagsSource.NONE.value
+
+
+async def test_event_matching_prefers_event_summary_provider(db_session, article, category):
+    """Event matching should use the EVENT_SUMMARY provider, not the tagging
+    one, when EVENT_SUMMARY is configured."""
+    mock_result = TaggingResult(tags=["ai"], category_slug=None, language="it", confidence=0.5)
+    tagging_provider = AsyncMock()
+    tagging_provider.tag_article = AsyncMock(return_value=mock_result)
+    event_summary_provider = AsyncMock()
+
+    async def get_provider_for(function, db, encryption_key=""):
+        return event_summary_provider if function == LLMFunction.EVENT_SUMMARY else tagging_provider
+
+    fake_event = Mock(id=uuid.uuid4())
+
+    with patch("app.services.llm.tagging.llm_router") as mock_router:
+        mock_router.get_provider_for = AsyncMock(side_effect=get_provider_for)
+        with patch(
+            "app.services.event_clustering.attach_or_create_event",
+            new=AsyncMock(return_value=(fake_event, False)),
+        ) as mock_attach:
+            with patch("app.services.llm.tagging.AsyncSessionLocal") as mock_session_factory:
+                mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=db_session)
+                mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
+                await _tag_article(article.id)
+
+    mock_attach.assert_called_once()
+    _, _, used_provider = mock_attach.call_args[0]
+    assert used_provider is event_summary_provider
+
+
+async def test_event_matching_falls_back_to_tagging_provider(db_session, article, category):
+    """If EVENT_SUMMARY has no provider assigned, matching must fall back to
+    the tagging provider instead of silently disabling clustering."""
+    mock_result = TaggingResult(tags=["ai"], category_slug=None, language="it", confidence=0.5)
+    tagging_provider = AsyncMock()
+    tagging_provider.tag_article = AsyncMock(return_value=mock_result)
+
+    async def get_provider_for(function, db, encryption_key=""):
+        return None if function == LLMFunction.EVENT_SUMMARY else tagging_provider
+
+    fake_event = Mock(id=uuid.uuid4())
+
+    with patch("app.services.llm.tagging.llm_router") as mock_router:
+        mock_router.get_provider_for = AsyncMock(side_effect=get_provider_for)
+        with patch(
+            "app.services.event_clustering.attach_or_create_event",
+            new=AsyncMock(return_value=(fake_event, False)),
+        ) as mock_attach:
+            with patch("app.services.llm.tagging.AsyncSessionLocal") as mock_session_factory:
+                mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=db_session)
+                mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
+                await _tag_article(article.id)
+
+    mock_attach.assert_called_once()
+    _, _, used_provider = mock_attach.call_args[0]
+    assert used_provider is tagging_provider
 
 
 async def test_category_assigned_high_confidence(db_session, article, feed, category):

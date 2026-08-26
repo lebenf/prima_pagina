@@ -124,7 +124,16 @@ async def _tag_article(article_id: UUID) -> None:
 
         from app.services.event_clustering import attach_or_create_event
 
-        event, should_regenerate_summary = await attach_or_create_event(db, article, provider)
+        # Event matching is a harder editorial judgment than tagging — prefer
+        # the model assigned to EVENT_SUMMARY (also event-related editorial
+        # work), falling back to the tagging provider if unconfigured so
+        # clustering doesn't silently stop working on upgrade.
+        event_matching_provider = await llm_router.get_provider_for(
+            LLMFunction.EVENT_SUMMARY, db, encryption_key=settings.encryption_key
+        ) or provider
+        event, should_regenerate_summary = await attach_or_create_event(
+            db, article, event_matching_provider
+        )
 
         await db.commit()
         logger.debug(
