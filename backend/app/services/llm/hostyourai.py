@@ -51,7 +51,23 @@ class HostYourAIProvider(LLMProvider):
             )
             response.raise_for_status()
         data = response.json()
-        return data["choices"][0]["message"]["content"]
+        choice = data["choices"][0]
+        message = choice.get("message") or {}
+        # Reasoning models (e.g. Qwen3.5) may burn the whole max_tokens budget on
+        # hidden chain-of-thought and return content: null with the CoT text left
+        # in reasoning_content instead.
+        content = message.get("content") or message.get("reasoning_content")
+        if not content:
+            finish_reason = choice.get("finish_reason")
+            logger.error(
+                "hostyourai: empty content for model %s (finish_reason=%s)",
+                self.model, finish_reason,
+            )
+            raise ValueError(
+                f"hostyourai: risposta vuota dal modello (finish_reason={finish_reason}) "
+                "— probabile budget di token insufficiente per un modello di reasoning"
+            )
+        return content
 
     async def tag_article(
         self,
@@ -67,7 +83,7 @@ class HostYourAIProvider(LLMProvider):
             tagging_language=tagging_language, existing_tags=existing_tags,
         )
         try:
-            raw = await self._chat_complete(prompt, max_tokens=300, json_mode=True)
+            raw = await self._chat_complete(prompt, max_tokens=800, json_mode=True)
             return self._parse_tagging_json(raw)
         except httpx.TimeoutException:
             logger.warning("hostyourai: tag_article timeout for model %s", self.model)
@@ -99,7 +115,7 @@ class HostYourAIProvider(LLMProvider):
             "code fences, start directly with the markup."
         )
         try:
-            raw = await self._chat_complete(prompt, max_tokens=4000)
+            raw = await self._chat_complete(prompt, max_tokens=8000)
             content_html = self._clean_html_response(raw)
             content_text = re.sub(r"<[^>]+>", " ", content_html).strip()
             title = f"Rassegna stampa — {period_label}"

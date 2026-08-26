@@ -77,6 +77,34 @@ async def test_tag_article_timeout():
 
 
 @respx.mock
+async def test_generate_text_falls_back_to_reasoning_content():
+    respx.post(CHAT_URL).mock(
+        return_value=httpx.Response(200, json={
+            "choices": [{"message": {"content": None, "reasoning_content": "thought then answer"}}]
+        })
+    )
+    provider = HostYourAIProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    result = await provider.generate_text("some prompt")
+    assert result == "thought then answer"
+
+
+@respx.mock
+async def test_generate_digest_raises_on_empty_content():
+    respx.post(CHAT_URL).mock(
+        return_value=httpx.Response(200, json={
+            "choices": [{"message": {"content": None}, "finish_reason": "length"}]
+        })
+    )
+    provider = HostYourAIProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    with pytest.raises(ValueError, match="risposta vuota"):
+        await provider.generate_digest(
+            [{"source": "Test", "title": "Titolo", "excerpt": "Excerpt"}],
+            "30-31 luglio 2026",
+            "it",
+        )
+
+
+@respx.mock
 async def test_generate_text():
     respx.post(CHAT_URL).mock(
         return_value=httpx.Response(200, json=_chat_response("hello world"))
