@@ -240,6 +240,10 @@ export const adminApi = {
     revoke: (id: string) => client.delete(`/admin/invitations/${id}`),
   },
 
+  events: {
+    delete: (id: string) => client.delete(`/admin/events/${id}`),
+  },
+
   extractionScript: {
     get: (feedId: string) => client.get<ExtractionScript>(`/feeds/${feedId}/extraction-script`),
     regenerate: (feedId: string) => client.post(`/feeds/${feedId}/extraction-script/regenerate`),

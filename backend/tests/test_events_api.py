@@ -324,6 +324,27 @@ async def test_detach_article_creates_new_single_event(admin_client, db_session,
     assert event.tags == ["ai"]
 
 
+async def test_delete_event_orphans_articles(admin_client, db_session, event_with_article):
+    event, article = event_with_article
+    event_id, article_id = event.id, article.id
+
+    resp = await admin_client.delete(f"/api/v1/admin/events/{event_id}")
+    assert resp.status_code == 204
+
+    db_session.expire_all()  # event/article were cached before the API call committed elsewhere
+    deleted = await db_session.get(Event, event_id)
+    assert deleted is None
+
+    reloaded = await db_session.get(Article, article_id)
+    assert reloaded.event_id is None
+    assert reloaded.event_role is None
+
+
+async def test_delete_event_not_found(admin_client):
+    resp = await admin_client.delete(f"/api/v1/admin/events/{uuid4()}")
+    assert resp.status_code == 404
+
+
 async def test_admin_endpoints_reject_non_admin(user_client, event_with_article):
     event, _ = event_with_article
     resp = await user_client.post(
@@ -335,6 +356,9 @@ async def test_admin_endpoints_reject_non_admin(user_client, event_with_article)
     assert resp.status_code == 403
 
     resp = await user_client.post(f"/api/v1/admin/events/{event.id}/regenerate-summary")
+    assert resp.status_code == 403
+
+    resp = await user_client.delete(f"/api/v1/admin/events/{event.id}")
     assert resp.status_code == 403
 
 

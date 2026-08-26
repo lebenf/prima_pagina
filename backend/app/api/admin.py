@@ -551,6 +551,28 @@ async def force_regenerate_summary(
     return detail
 
 
+@router.delete("/events/{event_id}", status_code=204)
+async def delete_event(
+    event_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Deletes a badly-generated event. Member articles are orphaned
+    (event_id/event_role cleared), not deleted — they remain in the reader,
+    just unclustered, and can form or join a new event on their next tag."""
+    event = await db.get(Event, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    await db.execute(
+        update(Article)
+        .where(Article.event_id == event_id)
+        .values(event_id=None, event_role=None)
+    )
+    await db.delete(event)
+    await db.commit()
+
+
 # ---------------------------------------------------------------------------
 # Plugin config endpoints
 # ---------------------------------------------------------------------------

@@ -55,7 +55,10 @@
   "events": {
     "sourceCount": "{count} sources",
     "title": "Events",
-    "noEvents": "No events detected"
+    "noEvents": "No events detected",
+    "deleteEvent": "Delete event",
+    "deleteConfirmTitle": "Delete this event?",
+    "deleteConfirmMessage": "The event's articles won't be deleted, they'll just become unclustered again. This can't be undone."
   },
   "feed": {
     "subscribe": "Subscribe",

@@ -22,6 +22,11 @@
             :initial-vote="event.user_vote ?? 0"
             @vote-changed="onVoteChanged"
           />
+          <button
+            v-if="auth.isAdmin"
+            class="action-btn delete-event-btn"
+            @click="confirmingDelete = true"
+          >{{ t('events.deleteEvent') }}</button>
         </div>
       </header>
 
@@ -57,22 +62,36 @@
         </li>
       </ul>
     </template>
+
+    <ConfirmDialog
+      v-if="confirmingDelete"
+      :title="t('events.deleteConfirmTitle')"
+      :message="t('events.deleteConfirmMessage')"
+      @confirm="deleteEvent"
+      @cancel="confirmingDelete = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { eventsApi, type EventDetail } from '@/api/events'
 import { articlesApi } from '@/api/articles'
+import { adminApi } from '@/api/admin'
+import { useAuthStore } from '@/stores/auth'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import RelativeTime from '@/components/common/RelativeTime.vue'
 import VoteButtons from '@/components/common/VoteButtons.vue'
 import EventSourceBadge from '@/components/events/EventSourceBadge.vue'
+import ConfirmDialog from '@/components/admin/ConfirmDialog.vue'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+const confirmingDelete = ref(false)
 
 const event = ref<EventDetail | null>(null)
 const loading = ref(false)
@@ -104,6 +123,12 @@ async function toggleStar(article: { id: string; is_starred: boolean }) {
   const newState = !article.is_starred
   await articlesApi.updateState(article.id, { is_starred: newState })
   article.is_starred = newState
+}
+
+async function deleteEvent() {
+  if (!event.value) return
+  await adminApi.events.delete(event.value.id)
+  router.push({ name: 'events' })
 }
 
 onMounted(load)
@@ -203,5 +228,13 @@ onMounted(load)
 .open-reader-btn {
   color: #2563eb;
   border-color: #2563eb;
+}
+.delete-event-btn {
+  margin-left: auto;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+.delete-event-btn:hover {
+  background: #fef2f2;
 }
 </style>

@@ -55,7 +55,10 @@
   "events": {
     "sourceCount": "{count} fuentes",
     "title": "Eventos",
-    "noEvents": "No se han detectado eventos"
+    "noEvents": "No se han detectado eventos",
+    "deleteEvent": "Eliminar evento",
+    "deleteConfirmTitle": "¿Eliminar este evento?",
+    "deleteConfirmMessage": "Los artículos de este evento no se eliminarán, simplemente quedarán sin agrupar de nuevo. Esta acción no se puede deshacer."
   },
   "feed": {
     "subscribe": "Suscribirse",

@@ -55,7 +55,10 @@
   "events": {
     "sourceCount": "{count} fonti",
     "title": "Eventi",
-    "noEvents": "Nessun evento rilevato"
+    "noEvents": "Nessun evento rilevato",
+    "deleteEvent": "Elimina evento",
+    "deleteConfirmTitle": "Eliminare l'evento?",
+    "deleteConfirmMessage": "Gli articoli di questo evento non verranno eliminati, torneranno semplicemente non raggruppati. L'operazione non è reversibile."
   },
   "feed": {
     "subscribe": "Iscriviti",

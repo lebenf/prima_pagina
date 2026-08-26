@@ -55,7 +55,10 @@
   "events": {
     "sourceCount": "{count} Quellen",
     "title": "Ereignisse",
-    "noEvents": "Keine Ereignisse erkannt"
+    "noEvents": "Keine Ereignisse erkannt",
+    "deleteEvent": "Ereignis löschen",
+    "deleteConfirmTitle": "Dieses Ereignis löschen?",
+    "deleteConfirmMessage": "Die Artikel dieses Ereignisses werden nicht gelöscht, sie werden nur wieder nicht gruppiert. Dies kann nicht rückgängig gemacht werden."
   },
   "feed": {
     "subscribe": "Abonnieren",
