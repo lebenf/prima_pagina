@@ -133,3 +133,23 @@ async def test_tag_article_custom_endpoint():
     provider = OllamaProvider(make_config(endpoint_url=endpoint))
     result = await provider.tag_article("Title", "Excerpt", "it", [])
     assert result.tags != [] or result.confidence == pytest.approx(0.92)
+
+
+@respx.mock
+async def test_generate_digest_includes_article_url():
+    captured = {}
+
+    async def capture(request, route):
+        body = json.loads(request.content)
+        captured["prompt"] = body["prompt"]
+        return httpx.Response(200, json={"response": "<h2>ok</h2>"})
+
+    respx.post(GENERATE_URL).mock(side_effect=capture)
+
+    provider = OllamaProvider(make_config())
+    await provider.generate_digest(
+        [{"source": "Test", "title": "Titolo", "excerpt": "Excerpt", "url": "https://example.com/a"}],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert "https://example.com/a" in captured["prompt"]

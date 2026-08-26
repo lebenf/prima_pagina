@@ -16,7 +16,7 @@ class OllamaProvider(LLMProvider):
     def __init__(self, config):
         super().__init__(config)
         self.base_url = (config.endpoint_url or "http://localhost:11434").rstrip("/")
-        self.timeout_sec = getattr(config, "timeout_sec", 300)
+        self.timeout_sec = getattr(config, "timeout_sec", None) or 300
 
     async def tag_article(
         self,
@@ -71,6 +71,10 @@ class OllamaProvider(LLMProvider):
             f"Articles:\n{articles_text}\n\n"
             f"{style_hints}\n\n"
             "Format: HTML with <h2> for sections, <article> per story. "
+            "When a URL is given above for a story, cite the source as "
+            '<cite><a href="EXACT_URL_FROM_ABOVE">Source name</a></cite> — use the URL '
+            "exactly as given, never invent or alter it. If no URL is given, cite only "
+            "the source name in plain text. "
             "Reply with the HTML only — no introduction, no explanation, no markdown "
             "code fences, start directly with the markup."
         )
@@ -132,7 +136,10 @@ class OllamaProvider(LLMProvider):
         total = 0
         for i, art in enumerate(articles, 1):
             content = (art.get("fulltext") or art.get("excerpt", ""))[:1000]
-            part = f"[{i}] {art.get('source', '')} — {art.get('title', '')}\n{content}\n"
+            part = (
+                f"[{i}] {art.get('source', '')} — {art.get('title', '')}\n"
+                f"URL: {art.get('url', '')}\n{content}\n"
+            )
             if total + len(part) > 40_000:
                 break
             parts.append(part)

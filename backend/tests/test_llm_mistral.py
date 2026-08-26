@@ -154,3 +154,23 @@ async def test_generate_digest_no_fence_still_strips_preamble():
         "it",
     )
     assert result.content_html == "<h2>Italia</h2><p>Testo</p>"
+
+
+@respx.mock
+async def test_generate_digest_includes_article_url():
+    captured = {}
+
+    async def capture(request, route):
+        body = json.loads(request.content)
+        captured["content"] = body["messages"][0]["content"]
+        return httpx.Response(200, json=_chat_response("<h2>ok</h2>"))
+
+    respx.post(CHAT_URL).mock(side_effect=capture)
+
+    provider = MistralProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    await provider.generate_digest(
+        [{"source": "Test", "title": "Titolo", "excerpt": "Excerpt", "url": "https://example.com/a"}],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert "https://example.com/a" in captured["content"]

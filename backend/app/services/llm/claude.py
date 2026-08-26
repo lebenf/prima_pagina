@@ -76,7 +76,10 @@ class ClaudeProvider(LLMProvider):
             f"Write a press digest for {period_label}.\n\n"
             f"Articles:\n{articles_text}\n\n"
             "Output HTML with <h2> per thematic section, <article> per story "
-            "(<h3> title, <p> summary ≤150 words, <cite> source+link). "
+            "(<h3> title, <p> summary ≤150 words). When a URL is given above for a "
+            'story, cite the source as <cite><a href="EXACT_URL_FROM_ABOVE">Source '
+            "name</a></cite> — use the URL exactly as given, never invent or alter it. "
+            "If no URL is given, cite only the source name in plain text. "
             "Add a 2-3 sentence introduction inside the HTML. "
             "Reply with the HTML only — no preamble, no explanation, no markdown "
             "code fences, start directly with the markup."
