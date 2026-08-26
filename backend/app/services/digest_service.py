@@ -1,6 +1,7 @@
 # Copyright (C) 2026 Lorenzo Benfeati
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import html
 import logging
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -11,6 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.article import Article, FulltextStatus
 from app.models.digest import Digest
+from app.models.event import Event
 from app.models.feed import Feed
 from app.models.llm_function_assignment import LLMFunction
 from app.models.user import User
@@ -20,6 +22,31 @@ from app.services.full_text import _extract_fulltext_sync
 from app.services.llm.router import llm_router
 
 logger = logging.getLogger(__name__)
+
+_EVENTS_SECTION_HEADING = {
+    "it": "Eventi del periodo", "en": "Events in this period", "fr": "Événements de la période",
+    "de": "Ereignisse in diesem Zeitraum", "es": "Eventos del período", "pt": "Eventos do período",
+}
+
+
+async def _build_events_section(db: AsyncSession, articles: list[Article], lang: str) -> str:
+    """Deterministic, non-LLM HTML fragment linking the digest to the app's
+    own clustered Events represented among the digest's articles. Returns ''
+    if none of the selected articles belong to an event."""
+    event_ids = {a.event_id for a in articles if a.event_id}
+    if not event_ids:
+        return ""
+    result = await db.execute(select(Event).where(Event.id.in_(event_ids)))
+    events = sorted(result.scalars().all(), key=lambda e: e.last_activity_at, reverse=True)
+    if not events:
+        return ""
+    heading = _EVENTS_SECTION_HEADING.get(lang, _EVENTS_SECTION_HEADING["en"])
+    items = "".join(
+        f'<li><a href="/events/{e.id}">{html.escape(e.title)}</a>'
+        f'{" — " + html.escape(e.synopsis) if e.synopsis else ""}</li>'
+        for e in events
+    )
+    return f"<h2>{html.escape(heading)}</h2><ul>{items}</ul>"
 
 
 class DigestError(Exception):
@@ -85,7 +112,10 @@ async def generate_digest(
             period_label=period_label,
             output_language=user.preferred_lang,
         )
-        content_html = _sanitize_digest_html(result.content_html)
+        events_html = await _build_events_section(
+            db, articles[:options.max_articles], user.preferred_lang
+        )
+        content_html = _sanitize_digest_html(result.content_html + events_html)
         content_text = result.content_text or _html_to_text(content_html)
         digest.title = result.title
         digest.content_html = content_html

@@ -159,6 +159,38 @@ async def test_generate_digest_success(user_client, articles):
     assert "content_html" in data
     assert data["article_count"] > 0
     assert data["title"] == "Rassegna Stampa"
+    assert "/events/" not in data["content_html"]  # no article belongs to an Event
+
+
+async def test_generate_digest_includes_events_section(user_client, articles, db_session):
+    from app.models.event import Event, EventStatus, TitleSource
+
+    event = Event(
+        title="Crisi energia UK",
+        title_source=TitleSource.LLM.value,
+        synopsis="Sintesi evento.",
+        tags=["energia", "uk"],
+        status=EventStatus.OPEN.value,
+        article_count=1,
+        source_count=1,
+        opened_at=datetime.utcnow(),
+        last_activity_at=datetime.utcnow(),
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    articles[0].event_id = event.id
+    await db_session.commit()
+
+    with patch("app.services.digest_service.llm_router") as mock_router:
+        mock_router.get_provider_for = AsyncMock(return_value=_mock_provider())
+        resp = await user_client.post("/api/v1/digests/generate", json={})
+
+    assert resp.status_code == 201, resp.text
+    data = resp.json()
+    assert f"/events/{event.id}" in data["content_html"]
+    assert "Crisi energia UK" in data["content_html"]
 
 
 async def test_generate_digest_no_articles(user_client):
