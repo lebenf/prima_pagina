@@ -244,6 +244,36 @@ async def test_article_attaches_to_matching_candidate_via_llm(db_session, feed_a
     assert set(result_event.tags) == {"ai", "startup"}
     assert should_regen is True  # new source joined
 
+    # Enough headroom for a reasoning model's hidden chain-of-thought before
+    # the JSON answer, and json_mode requested where the provider supports it.
+    mock_provider.generate_text.assert_called_once()
+    call_kwargs = mock_provider.generate_text.call_args.kwargs
+    assert call_kwargs["max_tokens"] == 600
+    assert call_kwargs["json_mode"] is True
+
+
+async def test_llm_match_tolerates_fenced_json_response(db_session, feed_a, feed_b, category_a):
+    """A model that wraps its JSON in a markdown code fence despite being
+    told not to must still match — this is exactly the robustness gap that
+    made clustering swing wildly between models."""
+    event = _make_event(category_id=category_a.id, tags=["ai"])
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    feed_b.category_id = category_a.id
+    article = _make_article(feed_b.id, tags=["ai", "startup"])
+    db_session.add(article)
+    await db_session.flush()
+    article.feed = feed_b
+
+    mock_provider = AsyncMock()
+    mock_provider.generate_text = AsyncMock(return_value='```json\n{"event_index": 1}\n```')
+
+    result_event, _ = await attach_or_create_event(db_session, article, provider=mock_provider)
+
+    assert result_event.id == event.id
+
 
 async def test_llm_says_no_match_creates_new_event(db_session, feed_a, feed_b, category_a):
     event = _make_event(category_id=category_a.id, tags=["ai"])

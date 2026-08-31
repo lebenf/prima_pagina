@@ -202,3 +202,49 @@ async def test_generate_digest_includes_article_url():
         "it",
     )
     assert "https://example.com/a" in captured["content"]
+
+
+@respx.mock
+async def test_generate_digest_groups_multi_source_story():
+    captured = {}
+
+    async def capture(request, route):
+        body = json.loads(request.content)
+        captured["content"] = body["messages"][0]["content"]
+        return httpx.Response(200, json=_chat_response("<h2>ok</h2>"))
+
+    respx.post(CHAT_URL).mock(side_effect=capture)
+
+    provider = HostYourAIProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    await provider.generate_digest(
+        [{
+            "title": "Titolo evento",
+            "excerpt": "Excerpt",
+            "sources": [
+                {"source": "Fonte A", "url": "https://a.example.com"},
+                {"source": "Fonte B", "url": "https://b.example.com"},
+            ],
+        }],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert "Fonte A" in captured["content"]
+    assert "Fonte B" in captured["content"]
+    assert "Fonti:" in captured["content"]
+
+
+@respx.mock
+async def test_generate_text_json_mode_sets_response_format():
+    captured = {}
+
+    async def capture(request, route):
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json=_chat_response('{"event_index": 1}'))
+
+    respx.post(CHAT_URL).mock(side_effect=capture)
+
+    provider = HostYourAIProvider(make_config(), encryption_key=ENCRYPTION_KEY)
+    result = await provider.generate_text("prompt", max_tokens=600, json_mode=True)
+
+    assert captured["body"]["response_format"] == {"type": "json_object"}
+    assert result == '{"event_index": 1}'

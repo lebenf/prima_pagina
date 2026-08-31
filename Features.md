@@ -37,9 +37,10 @@
 
 ## Eventi (clustering articoli multi-fonte)
 - Un **evento** aggrega uno o più articoli che coprono lo stesso accadimento specifico, anche da fonti diverse
-- Clustering al termine del tagging: candidati = eventi aperti nella finestra configurabile (`EVENT_CLUSTERING_WINDOW_HOURS`, default 72h), stessa categoria del feed, tag sovrapposti; disambiguazione tramite chiamata LLM leggera (stesso provider assegnato al tagging) quando ci sono candidati
+- Clustering al termine del tagging: candidati = eventi aperti nella finestra configurabile (`EVENT_CLUSTERING_WINDOW_HOURS`, default 72h), stessa categoria del feed, tag sovrapposti; disambiguazione tramite chiamata LLM leggera (provider assegnato a `EVENT_SUMMARY`, fallback al provider di tagging) quando ci sono candidati
 - Precisione sopra recall: in caso di dubbio o errore LLM viene creato un nuovo evento invece di un raggruppamento errato
-- Titolo/sinossi iniziali = titolo/estratto dell'articolo rappresentante (`title_source = "representative"`); rigenerati via LLM (`title_source = "llm"`) in background alla prima nuova fonte o ogni 3° articolo — fallimento silenzioso, titolo/sinossi correnti invariati
+- Matching LLM robusto al modello usato: budget di token realistico (headroom per eventuale ragionamento nascosto dei modelli reasoning) e parsing JSON tollerante a code fence/prosa introduttiva (`LLMProvider._parse_json_object`), così un fallimento di formattazione non forza sistematicamente un nuovo evento
+- Titolo/sinossi iniziali = titolo/estratto dell'articolo rappresentante (`title_source = "representative"`); rigenerati via LLM (`title_source = "llm"`) in background alla prima nuova fonte o ogni 3° articolo — stesso parsing JSON tollerante; fallimento silenzioso, titolo/sinossi correnti invariati
 - `source_count` = conteggio feed distinti tra i membri, ricalcolato ad ogni attach (non un contatore incrementale)
 - Job giornaliero `close_stale_events`: chiude gli eventi `open` senza attività entro la finestra di clustering
 - Voto +1/-1 sull'evento: aggiorna le preferenze tag dell'utente per l'unione dei tag di tutti gli articoli membri (`POST`/`DELETE /api/v1/events/{id}/vote`)
@@ -113,6 +114,7 @@
 ## Digest (rassegna stampa)
 - Generazione on-demand o schedulata (cron configurabile, default `0 5 * * *`), con articoli delle ultime 24h
 - Generazione schedulata saltata per utente se esiste già un digest generato nelle ultime `DIGEST_DEDUPE_HOURS` ore (default 2h)
+- Deduplicazione per evento in fase di selezione: articoli che coprono lo stesso `Event` clusterizzato producono un'unica voce nel digest (il rappresentante è quello con punteggio più alto), con citazione inline di tutte le fonti che ne hanno parlato — non più una voce ripetuta per ogni articolo dello stesso fatto
 - Provider LLM selezionabile: Ollama (self-hosted) o Claude (Anthropic API)
 - Output HTML strutturato con sezioni tematiche
 - Timeout configurabile per provider (default 300s)

@@ -55,8 +55,15 @@ class LLMProvider(ABC):
     ) -> DigestResult: ...
 
     @abstractmethod
-    async def generate_text(self, prompt: str, max_tokens: int = 500) -> str:
-        """Generic text generation for custom prompts (e.g. CSS selector extraction)."""
+    async def generate_text(self, prompt: str, max_tokens: int = 500, json_mode: bool = False) -> str:
+        """Generic text generation for custom prompts (e.g. CSS selector extraction).
+
+        `json_mode` asks the provider to constrain output to a JSON object where
+        it natively supports it (Ollama `format: "json"`, OpenAI-compatible
+        `response_format`, Claude assistant-turn prefill) — always parse the
+        result with `_parse_json_object`, which tolerates providers where this
+        is a best-effort hint rather than a hard guarantee.
+        """
         ...
 
     @abstractmethod
@@ -135,3 +142,35 @@ Rules:
         except (json.JSONDecodeError, KeyError, ValueError, TypeError):
             logger.warning("llm: failed to parse tagging JSON: %s", raw[:200])
             return TaggingResult()
+
+    @staticmethod
+    def _parse_json_object(raw: str) -> dict | None:
+        """Parse a JSON object out of raw LLM output, tolerating markdown code
+        fences and leading/trailing prose some models add despite being told
+        not to. Returns None (never raises) when no object can be recovered —
+        callers decide the fallback."""
+        text = (raw or "").strip()
+        fence = re.search(r"```(?:json)?\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
+        if fence:
+            text = fence.group(1).strip()
+        try:
+            data = json.loads(text)
+            return data if isinstance(data, dict) else None
+        except json.JSONDecodeError:
+            pass
+        start = text.find("{")
+        if start == -1:
+            return None
+        depth = 0
+        for i, ch in enumerate(text[start:], start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        data = json.loads(text[start : i + 1])
+                        return data if isinstance(data, dict) else None
+                    except json.JSONDecodeError:
+                        return None
+        return None

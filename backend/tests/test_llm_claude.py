@@ -115,6 +115,61 @@ async def test_digest_truncates_long_articles(mock_anthropic):
     assert len(user_content) < 65_000
 
 
+async def test_generate_digest_groups_multi_source_story(mock_anthropic):
+    from app.services.llm.claude import ClaudeProvider
+
+    mock_anthropic.messages.create = AsyncMock(return_value=make_message("<h2>ok</h2>"))
+
+    provider = ClaudeProvider(make_config())
+    articles = [{
+        "title": "Titolo evento",
+        "excerpt": "Excerpt",
+        "sources": [
+            {"source": "Fonte A", "url": "https://a.example.com"},
+            {"source": "Fonte B", "url": "https://b.example.com"},
+        ],
+    }]
+    await provider.generate_digest(articles, "21 aprile 2026", "it")
+
+    call_kwargs = mock_anthropic.messages.create.call_args
+    user_content = call_kwargs.kwargs["messages"][0]["content"]
+    assert "Fonte A" in user_content
+    assert "Fonte B" in user_content
+    assert "Fonti:" in user_content
+
+
+async def test_generate_text_json_mode_prefills_and_reassembles(mock_anthropic):
+    from app.services.llm.claude import ClaudeProvider
+
+    # The API returns only the continuation after our "{" prefill.
+    mock_anthropic.messages.create = AsyncMock(
+        return_value=make_message('"event_index": 1}')
+    )
+
+    provider = ClaudeProvider(make_config())
+    result = await provider.generate_text("prompt", max_tokens=600, json_mode=True)
+
+    call_kwargs = mock_anthropic.messages.create.call_args
+    messages = call_kwargs.kwargs["messages"]
+    assert messages[-1] == {"role": "assistant", "content": "{"}
+    assert result == '{"event_index": 1}'
+    assert json.loads(result) == {"event_index": 1}
+
+
+async def test_generate_text_without_json_mode_no_prefill(mock_anthropic):
+    from app.services.llm.claude import ClaudeProvider
+
+    mock_anthropic.messages.create = AsyncMock(return_value=make_message("plain text"))
+
+    provider = ClaudeProvider(make_config())
+    result = await provider.generate_text("prompt")
+
+    call_kwargs = mock_anthropic.messages.create.call_args
+    messages = call_kwargs.kwargs["messages"]
+    assert len(messages) == 1
+    assert result == "plain text"
+
+
 async def test_api_key_not_in_response(admin_client, db_session):
     """API key must never appear in GET /admin/llm-configs responses."""
     cfg = make_config(has_api_key=True)

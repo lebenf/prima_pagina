@@ -3,7 +3,6 @@
 """Background regeneration of an event's LLM title/synopsis. Fire-and-forget:
 failures are logged and leave the current title/synopsis untouched — no
 exception ever propagates to the caller (the tagging worker)."""
-import json
 import logging
 from uuid import UUID
 
@@ -52,9 +51,13 @@ async def regenerate_event_summary(event_id: UUID) -> None:
             if not provider:
                 return
 
+            from app.services.llm.base import LLMProvider
+
             prompt = _build_event_summary_prompt(event, event.articles)
-            raw = await provider.generate_text(prompt, max_tokens=300)
-            data = json.loads(raw.strip())
+            raw = await provider.generate_text(prompt, max_tokens=600, json_mode=True)
+            data = LLMProvider._parse_json_object(raw)
+            if data is None:
+                raise ValueError(f"unparseable JSON response: {raw[:300]!r}")
             title = data.get("title")
             synopsis = data.get("synopsis")
             if not title or not synopsis:

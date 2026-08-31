@@ -74,7 +74,10 @@ class OllamaProvider(LLMProvider):
             "When a URL is given above for a story, cite the source as "
             '<cite><a href="EXACT_URL_FROM_ABOVE">Source name</a></cite> — use the URL '
             "exactly as given, never invent or alter it. If no URL is given, cite only "
-            "the source name in plain text. "
+            "the source name in plain text. When a story lists multiple 'Fonti' (sources) "
+            "instead of a single source, it means several outlets covered the same story: "
+            "write exactly ONE <article> for it, citing every listed source with its own "
+            "<cite><a> — never write a separate <article> per source for the same story. "
             "Reply with the HTML only — no introduction, no explanation, no markdown "
             "code fences, start directly with the markup."
         )
@@ -104,18 +107,18 @@ class OllamaProvider(LLMProvider):
             logger.error("ollama: generate_digest error: %s", exc)
             raise
 
-    async def generate_text(self, prompt: str, max_tokens: int = 500) -> str:
+    async def generate_text(self, prompt: str, max_tokens: int = 500, json_mode: bool = False) -> str:
         try:
+            body = {
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.1, "num_predict": max_tokens},
+            }
+            if json_mode:
+                body["format"] = "json"
             async with httpx.AsyncClient(timeout=min(60.0, self.timeout_sec)) as client:
-                response = await client.post(
-                    f"{self.base_url}/api/generate",
-                    json={
-                        "model": self.model,
-                        "prompt": prompt,
-                        "stream": False,
-                        "options": {"temperature": 0.1, "num_predict": max_tokens},
-                    },
-                )
+                response = await client.post(f"{self.base_url}/api/generate", json=body)
                 response.raise_for_status()
             return response.json().get("response", "")
         except Exception as exc:
@@ -136,10 +139,16 @@ class OllamaProvider(LLMProvider):
         total = 0
         for i, art in enumerate(articles, 1):
             content = (art.get("fulltext") or art.get("excerpt", ""))[:1000]
-            part = (
-                f"[{i}] {art.get('source', '')} — {art.get('title', '')}\n"
-                f"URL: {art.get('url', '')}\n{content}\n"
-            )
+            sources = art.get("sources")
+            if sources:
+                sources_text = "\n".join(f"  - {s['source']}: {s['url']}" for s in sources)
+                header = f"[{i}] {art.get('title', '')}\nFonti:\n{sources_text}\n"
+            else:
+                header = (
+                    f"[{i}] {art.get('source', '')} — {art.get('title', '')}\n"
+                    f"URL: {art.get('url', '')}\n"
+                )
+            part = f"{header}{content}\n"
             if total + len(part) > 40_000:
                 break
             parts.append(part)

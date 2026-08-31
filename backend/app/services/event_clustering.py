@@ -7,7 +7,6 @@ Precision over recall: a wrong merge (two distinct facts under one event) is a
 visible editorial error, worse than an extra event (a false negative). When in
 doubt, create a new event.
 """
-import json
 import logging
 import math
 from collections import Counter
@@ -124,16 +123,27 @@ def _build_event_match_prompt(article: Article, candidates: list[Event]) -> str:
 
 
 async def _match_candidate_with_llm(provider, article: Article, candidates: list[Event]) -> Event | None:
+    from app.services.llm.base import LLMProvider
+
     prompt = _build_event_match_prompt(article, candidates)
+    raw = ""
     try:
-        raw = await provider.generate_text(prompt, max_tokens=50)
-        data = json.loads(raw.strip())
+        # max_tokens has headroom beyond the few JSON bytes we need: some
+        # models (reasoning-tuned ones especially) spend part of the budget
+        # on hidden chain-of-thought before the answer and return truncated
+        # or empty content if the cap is too tight (see hostyourai.py).
+        raw = await provider.generate_text(prompt, max_tokens=600, json_mode=True)
+        data = LLMProvider._parse_json_object(raw)
+        if data is None:
+            raise ValueError("unparseable JSON response")
         idx = data.get("event_index")
         if isinstance(idx, int) and 1 <= idx <= len(candidates):
             return candidates[idx - 1]
         return None
     except Exception as exc:
-        logger.warning("event_clustering: LLM match selection failed: %s", exc)
+        logger.warning(
+            "event_clustering: LLM match selection failed: %s (raw=%r)", exc, raw[:300]
+        )
         # Fail-safe: only auto-pick when exactly one unambiguous candidate exists
         return candidates[0] if len(candidates) == 1 else None
 

@@ -193,6 +193,57 @@ async def test_generate_digest_includes_events_section(user_client, articles, db
     assert "Crisi energia UK" in data["content_html"]
 
 
+async def test_generate_digest_dedupes_same_event_with_multi_source_citation(
+    user_client, articles, db_session
+):
+    """Two articles covering the same clustered Event must reach the LLM as a
+    single item citing both sources — not as two separate digest entries."""
+    from app.models.event import Event, EventStatus, TitleSource
+
+    event = Event(
+        title="Stesso fatto",
+        title_source=TitleSource.LLM.value,
+        synopsis="Sintesi.",
+        tags=["politics"],
+        status=EventStatus.OPEN.value,
+        article_count=2,
+        source_count=1,
+        opened_at=datetime.utcnow(),
+        last_activity_at=datetime.utcnow(),
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+
+    # articles[0] (1h ago) and articles[1] (2h ago) are the same event;
+    # articles[0] outscores articles[1] on recency, so it's the representative.
+    articles[0].event_id = event.id
+    articles[1].event_id = event.id
+    await db_session.commit()
+
+    mock_provider = _mock_provider()
+    with patch("app.services.digest_service.llm_router") as mock_router:
+        mock_router.get_provider_for = AsyncMock(return_value=mock_provider)
+        resp = await user_client.post("/api/v1/digests/generate", json={})
+
+    assert resp.status_code == 201, resp.text
+
+    call_kwargs = mock_provider.generate_digest.call_args.kwargs
+    sent_articles = call_kwargs["articles"]
+    urls = {a["url"] for a in sent_articles}
+
+    # Only one entry for the clustered event (the higher-scored article's
+    # URL), plus the standalone article[2] — never both event members.
+    assert articles[0].url in urls
+    assert articles[1].url not in urls
+    assert articles[2].url in urls
+    assert len(sent_articles) == 2
+
+    grouped = next(a for a in sent_articles if a["url"] == articles[0].url)
+    sources = grouped["sources"]
+    assert {s["url"] for s in sources} == {articles[0].url, articles[1].url}
+
+
 async def test_generate_digest_no_articles(user_client):
     with patch("app.services.digest_service.llm_router") as mock_router:
         mock_router.get_provider_for = AsyncMock(return_value=_mock_provider())

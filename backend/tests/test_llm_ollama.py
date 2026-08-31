@@ -153,3 +153,67 @@ async def test_generate_digest_includes_article_url():
         "it",
     )
     assert "https://example.com/a" in captured["prompt"]
+
+
+@respx.mock
+async def test_generate_digest_groups_multi_source_story():
+    captured = {}
+
+    async def capture(request, route):
+        body = json.loads(request.content)
+        captured["prompt"] = body["prompt"]
+        return httpx.Response(200, json={"response": "<h2>ok</h2>"})
+
+    respx.post(GENERATE_URL).mock(side_effect=capture)
+
+    provider = OllamaProvider(make_config())
+    await provider.generate_digest(
+        [{
+            "title": "Titolo evento",
+            "excerpt": "Excerpt",
+            "sources": [
+                {"source": "Fonte A", "url": "https://a.example.com"},
+                {"source": "Fonte B", "url": "https://b.example.com"},
+            ],
+        }],
+        "30-31 luglio 2026",
+        "it",
+    )
+    assert "Fonte A" in captured["prompt"]
+    assert "https://a.example.com" in captured["prompt"]
+    assert "Fonte B" in captured["prompt"]
+    assert "https://b.example.com" in captured["prompt"]
+    assert "Fonti:" in captured["prompt"]
+
+
+@respx.mock
+async def test_generate_text_json_mode_sets_ollama_format():
+    captured = {}
+
+    async def capture(request, route):
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"response": '{"event_index": 1}'})
+
+    respx.post(GENERATE_URL).mock(side_effect=capture)
+
+    provider = OllamaProvider(make_config())
+    result = await provider.generate_text("prompt", max_tokens=600, json_mode=True)
+
+    assert captured["body"]["format"] == "json"
+    assert result == '{"event_index": 1}'
+
+
+@respx.mock
+async def test_generate_text_without_json_mode_omits_format():
+    captured = {}
+
+    async def capture(request, route):
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"response": "plain text"})
+
+    respx.post(GENERATE_URL).mock(side_effect=capture)
+
+    provider = OllamaProvider(make_config())
+    await provider.generate_text("prompt")
+
+    assert "format" not in captured["body"]

@@ -49,6 +49,31 @@ async def _build_events_section(db: AsyncSession, articles: list[Article], lang:
     return f"<h2>{html.escape(heading)}</h2><ul>{items}</ul>"
 
 
+async def _fetch_event_sources(
+    db: AsyncSession, event_ids: set[UUID]
+) -> dict[UUID, list[dict]]:
+    """{source, url} of every member article, grouped by event_id, for the
+    events represented among the digest's (already deduped) selection —
+    lets a single digest item cite every outlet that covered the story."""
+    if not event_ids:
+        return {}
+    result = await db.execute(
+        select(Article)
+        .where(Article.event_id.in_(event_ids))
+        .options(selectinload(Article.feed))
+        .order_by(Article.published_at)
+    )
+    grouped: dict[UUID, list[dict]] = {}
+    for article in result.scalars().all():
+        grouped.setdefault(article.event_id, []).append(
+            {
+                "source": article.feed.title if article.feed else "Fonte sconosciuta",
+                "url": article.url or "",
+            }
+        )
+    return grouped
+
+
 class DigestError(Exception):
     def __init__(self, code: str, message: str):
         self.code = code
@@ -83,7 +108,13 @@ async def generate_digest(
     if not provider:
         raise DigestError("no_provider", "Nessun provider LLM configurato per la generazione digest")
 
-    articles_data = [_prepare_article_for_digest(a) for a in articles[:options.max_articles]]
+    selected = articles[:options.max_articles]
+    sources_by_event = await _fetch_event_sources(
+        db, {a.event_id for a in selected if a.event_id}
+    )
+    articles_data = [
+        _prepare_article_for_digest(a, sources_by_event.get(a.event_id)) for a in selected
+    ]
     articles_data = [a for a in articles_data if a.get("excerpt") or a.get("fulltext")]
 
     if not articles_data:
@@ -112,9 +143,7 @@ async def generate_digest(
             period_label=period_label,
             output_language=user.preferred_lang,
         )
-        events_html = await _build_events_section(
-            db, articles[:options.max_articles], user.preferred_lang
-        )
+        events_html = await _build_events_section(db, selected, user.preferred_lang)
         content_html = _sanitize_digest_html(result.content_html + events_html)
         content_text = result.content_text or _html_to_text(content_html)
         digest.title = result.title
@@ -194,7 +223,7 @@ async def _select_articles(
             a for a in articles
             if _in_period(a.published_at or a.fetched_at, options.period_start, options.period_end)
         ]
-        return articles
+        return _dedupe_by_event(articles)
 
     # Subscribed feeds
     stmt = (
@@ -242,7 +271,22 @@ async def _select_articles(
         )
 
     articles.sort(key=_score, reverse=True)
-    return articles[: options.max_articles * 2]
+    return _dedupe_by_event(articles)[: options.max_articles * 2]
+
+
+def _dedupe_by_event(articles: list[Article]) -> list[Article]:
+    """Keep only the first (highest-ranked) article per event_id — the rest
+    are the same real-world story and would otherwise show up as separate
+    digest items. Articles with no event_id (not clustered) always pass through."""
+    seen_events: set[UUID] = set()
+    deduped = []
+    for article in articles:
+        if article.event_id:
+            if article.event_id in seen_events:
+                continue
+            seen_events.add(article.event_id)
+        deduped.append(article)
+    return deduped
 
 
 def _in_period(dt: datetime | None, start: datetime, end: datetime) -> bool:
@@ -319,8 +363,8 @@ async def _save_fulltext(article_id: UUID, fulltext: str) -> None:
         logger.debug("_save_fulltext background error for %s: %s", article_id, e)
 
 
-def _prepare_article_for_digest(article: Article) -> dict:
-    return {
+def _prepare_article_for_digest(article: Article, sources: list[dict] | None = None) -> dict:
+    data = {
         "title": article.title or "(senza titolo)",
         "source": article.feed.title if article.feed else "Fonte sconosciuta",
         "url": article.url or "",
@@ -330,6 +374,9 @@ def _prepare_article_for_digest(article: Article) -> dict:
         "fulltext": article.content_fulltext,
         "excerpt": article.content_excerpt,
     }
+    if sources and len(sources) > 1:
+        data["sources"] = sources
+    return data
 
 
 def _sanitize_digest_html(html: str) -> str:
